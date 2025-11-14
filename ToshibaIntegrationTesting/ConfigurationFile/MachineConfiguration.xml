@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Machines>
+	
+	<MachineDetails Machine_ID="LATL710050001892" Machine_IP="192.168.14.86"  Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
+	<MachineDetails Machine_ID="LATL710050001891" Machine_IP="192.168.14.71"  Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
+</Machines>

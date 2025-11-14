@@ -1,0 +1,21 @@
+CorrelationId: 551ac60b-141e-4ee7-b557-fcc38908dd26
+UTC DateTime: 10/31/2025 07:47:39
+
+The following files/folders have not been downloaded
+0. ToshibaBinary2Db/packages/Microsoft.Bcl.AsyncInterfaces.10.0.0-rc.2.25502.107/buildTransitive/net462/_._
+1. ToshibaBinary2Db/packages/Microsoft.Bcl.AsyncInterfaces.10.0.0-rc.2.25502.107/useSharedDesignerContext.txt
+2. ToshibaBinary2Db/packages/System.Data.SqlClient.4.9.0/buildTransitive/net462/_._
+3. ToshibaBinary2Db/packages/System.Data.SqlClient.4.9.0/buildTransitive/net6.0/_._
+4. ToshibaBinary2Db/packages/System.Runtime.CompilerServices.Unsafe.6.1.2/buildTransitive/net462/_._
+5. ToshibaBinary2Db/packages/System.Runtime.CompilerServices.Unsafe.6.1.2/buildTransitive/net6.0/_._
+6. ToshibaBinary2Db/packages/System.Runtime.CompilerServices.Unsafe.6.1.2/lib/net7.0/_._
+7. ToshibaBinary2Db/packages/System.Threading.Tasks.Extensions.4.6.3/buildTransitive/net462/_._
+8. ToshibaBinary2Db/packages/System.Threading.Tasks.Extensions.4.6.3/lib/netcoreapp2.1/_._
+9. ToshibaBinary2Db/packages/System.Threading.Tasks.Extensions.4.6.3/lib/netstandard2.1/_._
+10. ToshibaBinary2Db/TBin2DbConsole/obj/Debug/TBin2DbConsole.csproj.CopyComplete
+11. ToshibaBinary2Db/TBin2DbConsole/obj/Debug/TBin2DbConsole.csproj.SuggestedBindingRedirects.cache
+12. ToshibaBinary2Db/TBin2DbConsole/obj/Debug/ToshibaM.D1449D72.Up2Date
+13. ToshibaBinary2Db/ToshibaBinary2Database/obj/Debug/ToshibaB.2288684C.Up2Date
+14. ToshibaBinary2Db/ToshibaBinary2DbClassLibrary/obj/Debug/ToshibaB.74A1BFA4.Up2Date
+15. ToshibaBinary2Db/ToshibaLocal2Machines/obj/Debug/ToshibaL.F890171C.Up2Date
+16. ToshibaBinary2Db/ToshibaMacine2Local2DbWinService/obj/Debug/ToshibaM.BB225A0C.Up2Date

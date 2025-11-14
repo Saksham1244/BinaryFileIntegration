@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32901.215
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToshibaMachines2Local", "TBin2DbConsole\ToshibaMachines2Local.csproj", "{CA712E8F-AE05-468E-8EAA-22BBC02DB144}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToshibaBinary2Database", "ToshibaBinary2Database\ToshibaBinary2Database.csproj", "{2DA1AC13-CD69-4C5A-BAA0-C2F36CB32DBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToshibaLocal2Machines", "ToshibaLocal2Machines\ToshibaLocal2Machines.csproj", "{7BB9DE24-051E-43A9-A8EB-D72241B2B122}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToshibaMacine2Local2DbWinService", "ToshibaMacine2Local2DbWinService\ToshibaMacine2Local2DbWinService.csproj", "{D061407D-B812-48B6-AB28-E459104BAB4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToshibaBinary2DbClassLibrary", "ToshibaBinary2DbClassLibrary\ToshibaBinary2DbClassLibrary.csproj", "{6619671C-33DB-4703-B6A5-68785377C794}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CA712E8F-AE05-468E-8EAA-22BBC02DB144}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA712E8F-AE05-468E-8EAA-22BBC02DB144}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA712E8F-AE05-468E-8EAA-22BBC02DB144}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA712E8F-AE05-468E-8EAA-22BBC02DB144}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DA1AC13-CD69-4C5A-BAA0-C2F36CB32DBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DA1AC13-CD69-4C5A-BAA0-C2F36CB32DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DA1AC13-CD69-4C5A-BAA0-C2F36CB32DBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DA1AC13-CD69-4C5A-BAA0-C2F36CB32DBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BB9DE24-051E-43A9-A8EB-D72241B2B122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BB9DE24-051E-43A9-A8EB-D72241B2B122}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BB9DE24-051E-43A9-A8EB-D72241B2B122}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BB9DE24-051E-43A9-A8EB-D72241B2B122}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D061407D-B812-48B6-AB28-E459104BAB4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D061407D-B812-48B6-AB28-E459104BAB4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D061407D-B812-48B6-AB28-E459104BAB4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D061407D-B812-48B6-AB28-E459104BAB4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6619671C-33DB-4703-B6A5-68785377C794}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6619671C-33DB-4703-B6A5-68785377C794}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6619671C-33DB-4703-B6A5-68785377C794}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6619671C-33DB-4703-B6A5-68785377C794}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {209BFCED-05C0-41ED-9416-D8985E8C0944}
+	EndGlobalSection
+EndGlobal
