@@ -26,7 +26,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             CFG = ConfigurationManager.OpenExeConfiguration(assemblyPath);
         }
 
-        public async Task InsertPerformanceData()
+        public void InsertPerformanceData()
         {
             var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
             var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
@@ -53,7 +53,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     using (IDbConnection db = new SqlConnection(cs))
                     {
 
-                        int rowsAffected =await  db.ExecuteAsync(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID }, commandType: CommandType.StoredProcedure);
+                        int rowsAffected = db.Execute(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID }, commandType: CommandType.StoredProcedure);
                     }
                 
             }

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -14,27 +13,22 @@ namespace ToshibaBinary2DbClassLibrary.Model
 {
     public class Local2MachineFileTransfer
     {
-        private static Logger logger = LogManager.GetCurrentClassLogger();
+        //private static Logger logger = LogManager.GetCurrentClassLogger();
 
         MldMacValid mldMacValid;
-        Configuration CFG;
         public Local2MachineFileTransfer(MldMacValid _mldMacValid)
         {
             mldMacValid = _mldMacValid;
-            string assemblyPath = new Uri(Assembly.GetExecutingAssembly().CodeBase).AbsolutePath;
-            CFG = ConfigurationManager.OpenExeConfiguration(assemblyPath);
         }
 
         public void TransferBinaryFiles()
         {
             try
             {
-                var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
-                var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
-                var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;
+
 
                 // var MachConfigFilePath = ConfigurationManager.AppSettings["MachConfigFilePath"];
-                //var MachConfigFilePath = @"D:\ToshibaIntegrationTesting\ConfigurationFile\MachineConfiguration.xml";
+                var MachConfigFilePath = @"D:\ToshibaIntegrationTesting\ConfigurationFile\MachineConfiguration.xml";
             //open the XML File having the Machine configuration
             XmlDocument doc = new XmlDocument();
             doc.Load(MachConfigFilePath);
@@ -45,14 +39,14 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 Console.WriteLine(MachConfigFilePath);
 
                 foreach (XmlNode node in nodelist)
-                {
+            {
 
-                    string ftpAddress = node.Attributes["Machine_IP"].Value;
-                    string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
-                    string username = node.Attributes["Machine_Ftp_ID"].Value;
-                    string password = node.Attributes["Machine_Ftp_Pwd"].Value;
-
-
+                string ftpAddress = node.Attributes["Machine_IP"].Value;
+                string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
+                string username = node.Attributes["Machine_Ftp_ID"].Value;
+                string password = node.Attributes["Machine_Ftp_Pwd"].Value;
+                
+                
 
                     Console.WriteLine(ftpAddress);
                     Console.WriteLine(filePathOnFtp);
@@ -65,7 +59,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     // Setup session options    
                     Console.WriteLine(FtpPath);
 
-                    MoldMachineValidation machValidation = new MoldMachineValidation(mldMacValid);
+                    MoldMachineValidation machValidation=new MoldMachineValidation(mldMacValid);
                     string ValidationFile_Path = machValidation.DownloadValidationFile(mldMacValid.Machine_Id);
                     Console.WriteLine(ValidationFile_Path);
 
@@ -78,51 +72,44 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         //,                            SshHostKeyFing
                     };
 
-                    try
+                    using (Session session = new Session())
                     {
-                        using (Session session = new Session())
+                        // Connect
+                        session.Open(sessionOptions);
+
+                        if (!session.FileExists(FtpPath))
                         {
-                            // Connect
-                            session.Open(sessionOptions);
-
-                            if (!session.FileExists(FtpPath))
-                            {
-                                // Create directory if it does not exist
-                                session.CreateDirectory(FtpPath);
-                                Console.WriteLine("Folder Created");
-                            }
-
-                            // Upload files
-                            TransferOptions transferOptions = new TransferOptions();
-                            transferOptions.TransferMode = TransferMode.Binary;
-
-                            TransferOperationResult transferResult;
-                            transferResult =
-                                session.PutFiles(ValidationFile_Path, FtpPath, false, transferOptions);
-
-                            // Throw on any error
-                            transferResult.Check();
-
-                            // Print results
-                            foreach (TransferEventArgs transfer in transferResult.Transfers)
-                            {
-                                Console.WriteLine("Upload of {0} succeeded", transfer.FileName);
-                            }
+                            // Create directory if it does not exist
+                            session.CreateDirectory(FtpPath);
+                            Console.WriteLine("Folder Created");
                         }
-                    }
-                    catch (Exception WinScpEx) {
 
-                        logger.Error("Winscp Write " + WinScpEx.Message);
+                        // Upload files
+                        TransferOptions transferOptions = new TransferOptions();
+                        transferOptions.TransferMode = TransferMode.Binary;
 
-                    }
+                        TransferOperationResult transferResult;
+                        transferResult =
+                            session.PutFiles(ValidationFile_Path, FtpPath, false, transferOptions);
+
+                        // Throw on any error
+                        transferResult.Check();
+
+                        // Print results
+                        foreach (TransferEventArgs transfer in transferResult.Transfers)
+                        {
+                            Console.WriteLine("Upload of {0} succeeded", transfer.FileName);
+                        }
+                    }              
+
             }
 
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message);
+                //logger.Error(ex.Message);
                 Console.WriteLine (ex.ToString());
-                //ApplicationLogs.WriteLog(ex.Message);
+                ApplicationLogs.WriteLog(ex.Message);
                 
             }
 

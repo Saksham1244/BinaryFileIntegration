@@ -29,7 +29,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             CFG = ConfigurationManager.OpenExeConfiguration(assemblyPath);
         }
 
-        public async Task read_Mold_Files()
+        public void read_Mold_Files()
         {
             try
             {
@@ -191,7 +191,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                         using (IDbConnection db = new SqlConnection(cs))
                         {
-                            prodDateAndShift = await db.QueryFirstAsync<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                            prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
                             
                             read_Mold_File(fileName);
 
@@ -200,7 +200,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             MMD.ProdDate = prodDateAndShift.ProdDate;
                             MMD.ShiftName = prodDateAndShift.ShiftName;
 
-                            int rowsAffected = await db.ExecuteAsync(InsertMachine_Mold_DataTable, MMD);
+                            int rowsAffected = db.Execute(InsertMachine_Mold_DataTable, MMD);
                             if (rowsAffected > 0)
                             {
                                 Directory.CreateDirectory(readFolderPath);
@@ -208,7 +208,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 //moving file
                                 File.Move(fileName, readFileName);
                             }
-                            //Console.WriteLine(rowsAffected);
+                            Console.WriteLine(rowsAffected);
                         }
 
 

@@ -26,12 +26,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                 var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;                 
                 var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;                 
-                var ClearSourceFileOnDownload = CFG.AppSettings.Settings["ClearSourceFileOnDownload"].Value;
-
-                bool _ClearSourceFileOnDownload = false;
-                if (ClearSourceFileOnDownload == "1")
-                    _ClearSourceFileOnDownload = true;
-                
+                var ClearSourceFileOnDownload = CFG.AppSettings.Settings["ClearSourceFileOnDownload"].Value;               
+                bool.TryParse(ClearSourceFileOnDownload, out bool _ClearSourceFileOnDownload);
 
 
                 Console.WriteLine(MachConfigFilePath);
@@ -86,93 +82,55 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     using (Session session = new Session())
                     {
                         // Connect
+                        session.Open(sessionOptions);
+
+                        // Download files
+                        TransferOptions transferOptions = new TransferOptions();
+                        transferOptions.TransferMode = TransferMode.Binary;
+                        transferOptions.OverwriteMode=OverwriteMode.Overwrite;
+
+                        TransferOperationResult transferResult;
+                        transferResult =
+                            session.GetFiles(FtpPath, MachineFolder, _ClearSourceFileOnDownload, transferOptions);
                         
+                        // Throw on any error
+                        transferResult.Check();
 
-                        try
-                        {
-                            session.Open(sessionOptions);
-                            
-                            // Download files karan sir kitna tiem 
-                            TransferOptions transferOptions = new TransferOptions();
-                            transferOptions.TransferMode = TransferMode.Binary;
-                            transferOptions.OverwriteMode = OverwriteMode.Overwrite;
+                        // Print results
+                        //foreach (TransferEventArgs transfer in transferResult.Transfers)
+                        //{
+                        //    Console.WriteLine("Download of {0} succeeded", transfer.FileName);
 
-                            TransferOperationResult transferResult;
-                            transferResult =
-                                session.GetFiles(FtpPath, MachineFolder, false, transferOptions);
-
-                            // Throw on any error
-                            transferResult.Check();
-
-                            if (_ClearSourceFileOnDownload)
-                            {
-                                // Print results
-                                foreach (TransferEventArgs transfer in transferResult.Transfers)
-                                {
-                                    //Console.WriteLine("Download of {0} succeeded", transfer.FileName);
-                                    if(transfer.FileName != "AlarmText.txt")
-                                    session.RemoveFile(transfer.FileName);
-
-                                }
-                            }
-                                logger.Info("Download of {0} files succeeded", transferResult.Transfers.Count());
-                        }
-                        catch (Exception ex) {
-                            logger.Error("WinScp connection error for Machine:" + ftpAddress + "Error: " + ex);
-                        }
+                        //}
+                        logger.Info("Download of {0} files succeeded",transferResult.Transfers.Count());
                     }
 
-                    
+                    await Task.Run(() =>
+                    {
+                        ProcessData pd = new ProcessData();
+                        pd.read_PDS_Files();
+
+                        Machine_Data md = new Machine_Data();
+                        md.read_MAC_Files();
+
+                        Moulding_Data mld = new Moulding_Data();
+                        mld.read_Mold_Files();
+
+                        Alarm_Data alarm = new Alarm_Data();
+                        alarm.read_Alarm_Files();
+
+                        MoldMachineValidation mmv = new MoldMachineValidation();
+                        mmv.read_MldMacVld_Files();
+
+                        // Run the stored proc to performance tables
+                        Performance_CycleTime PC = new Performance_CycleTime();
+                        PC.InsertPerformanceData();
+                        
+
+                    });
+
 
                 }
-
-                //Await feature not working as expected, 
-                
-                Console.WriteLine("Alarm DB transfer Started");
-
-                Alarm_Data alarm = new Alarm_Data();
-                await alarm.read_Alarm_Files();
-
-                Console.WriteLine("Alarm DB transfer Completed");
-                Console.WriteLine("Process DB transfer Started");
-
-                ProcessData pd = new ProcessData();
-                await pd.read_PDS_Files();
-
-                Console.WriteLine("Process DB transfer Completed");
-                Console.WriteLine("Machine DB transfer Started");
-
-                Machine_Data md = new Machine_Data();
-                await md.read_MAC_Files();
-
-                Console.WriteLine("Machine DB transfer Completed");
-                Console.WriteLine("Moulding DB transfer Started");
-
-                Moulding_Data mld = new Moulding_Data();
-                await mld.read_Mold_Files();
-
-                Console.WriteLine("Moulding DB transfer Completed");
-                Console.WriteLine("Mould Validation DB transfer Started");
-
-
-
-                MoldMachineValidation mmv = new MoldMachineValidation();
-               await  mmv.read_MldMacVld_Files();
-
-                Console.WriteLine("Mould Validation DB transfer Completed");
-                Console.WriteLine("Performance DB transfer Started");
-
-                // Run the stored proc to performance tables
-
-                Performance_CycleTime PC = new Performance_CycleTime();
-               await PC.InsertPerformanceData();
-
-                Console.WriteLine("Performancen DB transfer Completed");
-                
-
-
-
-
 
             }
             catch (Exception ex)

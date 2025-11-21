@@ -56,7 +56,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 string userName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
                 //Console.WriteLine(userName);
 
-                string ValidationFile_Name =Path.Combine( MachineFolder , "mold_validation" , "MldMacValid" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".vld");
+                string ValidationFile_Name = MachineFolder + "mold_validation\\" + "MldMacValid" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".vld";
                 string ValidationFile_Folder = Path.Combine(MachineFolder, "mold_validation");
                 //Console.WriteLine(ValidationFile_Folder);
 
@@ -85,7 +85,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public async Task read_MldMacVld_Files()
+        public void read_MldMacVld_Files()
         {
             try
             {
@@ -144,7 +144,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                         using (IDbConnection db = new SqlConnection(cs))
                         {
-                            prodDateAndShift =await  db.QueryFirstAsync<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                            prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
 
                             read_Validation_File(fileName);
                             //SET Machine Id , Prod Date and Shift name 
@@ -152,7 +152,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             MMVD.ProdDate = prodDateAndShift.ProdDate;
                             MMVD.ShiftName = prodDateAndShift.ShiftName;
 
-                            int rowsAffected =await db.ExecuteAsync(InsertMoldMachValid_DataTable, MMVD);
+                            int rowsAffected = db.Execute(InsertMoldMachValid_DataTable, MMVD);
                             if (rowsAffected > 0)
                             {
                                 Directory.CreateDirectory(readFolderPath);

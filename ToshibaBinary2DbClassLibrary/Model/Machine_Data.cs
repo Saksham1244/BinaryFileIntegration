@@ -31,7 +31,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public async Task read_MAC_Files()
+        public void read_MAC_Files()
         {
             try
             {
@@ -124,7 +124,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                         using (IDbConnection db = new SqlConnection(cs))
                         {
-                            prodDateAndShift = await db.QueryFirstAsync<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                            prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
                             read_MAC_File(fileName);
                             //SET Machine Id , Prod Date and Shift name 
                             MDD.Machine_Id = Machine_ID;
@@ -133,7 +133,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
 
 
-                            int rowsAffected = await db.ExecuteAsync(InsertMachine_Mac_DataTable, MDD);
+                            int rowsAffected = db.Execute(InsertMachine_Mac_DataTable, MDD);
                             if (rowsAffected > 0)
                             {
                                 Directory.CreateDirectory(readFolderPath);
@@ -141,7 +141,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 //moving file
                                 File.Move(fileName, readFileName);
                             }
-                            //Console.WriteLine(rowsAffected);
+                            Console.WriteLine(rowsAffected);
                     }
 
                 }
@@ -186,7 +186,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     MDD.Bin_Total_Shots = macParaData.Bin_Total_Shots.ToString();
                     MDD.Set_Good_Parts = macParaData.Set_Good_Parts.ToString();
                     MDD.Energy_Value = macParaData.Energy_Value.ToString();
-                    MDD.Ideal_Cycle_Time = "0";//macParaData.Ideal_Cycle_Time.ToString();
+                    MDD.Ideal_Cycle_Time = macParaData.Ideal_Cycle_Time.ToString();
 
                 }
             }
@@ -255,7 +255,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
         public uint Bin_Total_Shots;
         public uint Set_Good_Parts;
         public int Energy_Value;
-        //public float Ideal_Cycle_Time;
+        public float Ideal_Cycle_Time;
 
     }
 

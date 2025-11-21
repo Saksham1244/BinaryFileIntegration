@@ -33,7 +33,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public  async Task read_PDS_Files()
+        public void read_PDS_Files()
         {
             try { 
                 var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
@@ -144,12 +144,12 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
                                                 where StationID=(
                                                 select StationID from Config_Equipment where EquipmentID=@EquipmentID)";
-                         
+                        ProdDateAndShift prodDateAndShift= new ProdDateAndShift();
 
 
                         using (IDbConnection db = new SqlConnection(cs))
                         {
-                            ProdDateAndShift prodDateAndShift = await db.QueryFirstAsync<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                            prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
                             read_PDS_File(fileName);
                         //SET Machine Id , Prod Date and Shift name 
                             MPD.Machine_Id = Machine_ID;
@@ -158,7 +158,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                                                         
 
-                            int rowsAffected = await db.ExecuteAsync(InsertMachine_Process_DataTable, MPD);
+                            int rowsAffected = db.Execute(InsertMachine_Process_DataTable, MPD);
                             if (rowsAffected > 0)
                             {
                                 Directory.CreateDirectory(readFolderPath);
@@ -166,7 +166,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 //moving file
                                 File.Move(fileName, readFileName);
                             }
-                            //Console.WriteLine(rowsAffected); 
+                            //Console.WriteLine(rowsAffected);
                         }
 
 

@@ -40,7 +40,7 @@
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.10.0.0-rc.2.25502.107\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.6.0.6\lib\net46\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.6.0.5\lib\net46\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -93,13 +93,13 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\NLog.Schema.6.0.5\build\NLog.Schema.targets" Condition="Exists('..\packages\NLog.Schema.6.0.5\build\NLog.Schema.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
+    <Error Condition="!Exists('..\packages\NLog.Schema.6.0.5\build\NLog.Schema.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NLog.Schema.6.0.5\build\NLog.Schema.targets'))" />
     <Error Condition="!Exists('..\packages\WinSCP.6.5.4\build\WinSCP.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WinSCP.6.5.4\build\WinSCP.targets'))" />
-    <Error Condition="!Exists('..\packages\NLog.Schema.6.0.6\build\NLog.Schema.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NLog.Schema.6.0.6\build\NLog.Schema.targets'))" />
   </Target>
   <Import Project="..\packages\WinSCP.6.5.4\build\WinSCP.targets" Condition="Exists('..\packages\WinSCP.6.5.4\build\WinSCP.targets')" />
-  <Import Project="..\packages\NLog.Schema.6.0.6\build\NLog.Schema.targets" Condition="Exists('..\packages\NLog.Schema.6.0.6\build\NLog.Schema.targets')" />
 </Project>
