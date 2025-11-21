@@ -33,26 +33,26 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public void read_PDS_Files()
+        public void read_PDS_Files(string Machine_ID, string LocalFilePath)
         {
             try { 
                 var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
-                var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
-                var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;
+                //var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
+                //var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;
 
                 //open the XML File having the Machine configuration
-                XmlDocument doc = new XmlDocument();
-                doc.Load(MachConfigFilePath);
+                //XmlDocument doc = new XmlDocument();
+                //doc.Load(MachConfigFilePath);
 
-                foreach (XmlNode node in doc.DocumentElement.ChildNodes)
-                {
+                //foreach (XmlNode node in doc.DocumentElement.ChildNodes)
+                //{
 
-                    string ftpAddress = node.Attributes["Machine_IP"].Value;
-                    string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
-                    string username = node.Attributes["Machine_Ftp_ID"].Value;
-                    string password = node.Attributes["Machine_Ftp_Pwd"].Value;
+                    //string ftpAddress = node.Attributes["Machine_IP"].Value;
+                    //string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
+                    //string username = node.Attributes["Machine_Ftp_ID"].Value;
+                    //string password = node.Attributes["Machine_Ftp_Pwd"].Value;
 
-                    string Machine_ID = node.Attributes["Machine_ID"].Value;
+                    //string Machine_ID = node.Attributes["Machine_ID"].Value;
                     string MachineFolder = LocalFilePath + "\\" + Machine_ID + "\\";
 
                     string folderPath = $"{MachineFolder}pds_para";
@@ -149,22 +149,44 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                         using (IDbConnection db = new SqlConnection(cs))
                         {
-                            prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                            logger.Info($"Querying ProdDate and ShiftName for Machine {Machine_ID}");
+                            try
+                            {
+                                prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                                logger.Info($"Successfully retrieved ProdDate: {prodDateAndShift.ProdDate}, Shift: {prodDateAndShift.ShiftName}");
+                            }
+                            catch (Exception queryEx)
+                            {
+                                logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID}: {queryEx.Message}");
+                                Console.WriteLine($"WARNING: Could not find ProdDate/Shift for Machine {Machine_ID}, using defaults");
+                                // Set defaults if query fails
+                                prodDateAndShift.ProdDate = DateTime.Now.Date;
+                                prodDateAndShift.ShiftName = "A";
+                            }
+                            
                             read_PDS_File(fileName);
                         //SET Machine Id , Prod Date and Shift name 
                             MPD.Machine_Id = Machine_ID;
                             MPD.ProdDate = prodDateAndShift.ProdDate;
                             MPD.ShiftName = prodDateAndShift.ShiftName;
 
-                                                        
+                            logger.Info($"Inserting process data for Machine {Machine_ID}, File: {Path.GetFileName(fileName)}");                                        
 
                             int rowsAffected = db.Execute(InsertMachine_Process_DataTable, MPD);
+                            logger.Info($"Rows affected: {rowsAffected}");
                             if (rowsAffected > 0)
                             {
                                 Directory.CreateDirectory(readFolderPath);
                                 string readFileName = fileName.Replace($"\\pds_para", $"\\pds_para\\read");
                                 //moving file
                                 File.Move(fileName, readFileName);
+                                logger.Info($"Successfully inserted and moved file: {Path.GetFileName(fileName)}");
+                                Console.WriteLine($"✓ Processed {Path.GetFileName(fileName)} for Machine {Machine_ID}");
+                            }
+                            else
+                            {
+                                logger.Warn($"No rows affected for file: {Path.GetFileName(fileName)}");
+                                Console.WriteLine($"WARNING: No rows inserted for {Path.GetFileName(fileName)}");
                             }
                             //Console.WriteLine(rowsAffected);
                         }
@@ -174,7 +196,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     }
 
 
-                }
+                //}
 
 
 
@@ -182,12 +204,14 @@ namespace ToshibaBinary2DbClassLibrary.Model
             }
             catch (Exception ex)
             {
-
-                logger.Error(ex.Message);
-                
-                
-
-
+                logger.Error($"Error in read_PDS_Files for Machine {Machine_ID}: {ex.Message}");
+                logger.Error($"Stack Trace: {ex.StackTrace}");
+                Console.WriteLine($"ERROR in ProcessData for Machine {Machine_ID}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    logger.Error($"Inner Exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
             }
 
 

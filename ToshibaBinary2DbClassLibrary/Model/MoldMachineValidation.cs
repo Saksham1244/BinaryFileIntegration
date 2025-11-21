@@ -85,29 +85,29 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public void read_MldMacVld_Files()
+        public void read_MldMacVld_Files(string Machine_ID, string LocalFilePath)
         {
             try
             {
 
 
                 var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
-                var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
-                var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;
+                //var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
+                //var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;
 
                 //open the XML File having the Machine configuration
-                XmlDocument doc = new XmlDocument();
-                doc.Load(MachConfigFilePath);
+                //XmlDocument doc = new XmlDocument();
+                //doc.Load(MachConfigFilePath);
 
-                foreach (XmlNode node in doc.DocumentElement.ChildNodes)
-                {
+                //foreach (XmlNode node in doc.DocumentElement.ChildNodes)
+                //{
 
-                    string ftpAddress = node.Attributes["Machine_IP"].Value;
-                    string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
-                    string username = node.Attributes["Machine_Ftp_ID"].Value;
-                    string password = node.Attributes["Machine_Ftp_Pwd"].Value;
+                    //string ftpAddress = node.Attributes["Machine_IP"].Value;
+                    //string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
+                    //string username = node.Attributes["Machine_Ftp_ID"].Value;
+                    //string password = node.Attributes["Machine_Ftp_Pwd"].Value;
 
-                    string Machine_ID = node.Attributes["Machine_ID"].Value;
+                    //string Machine_ID = node.Attributes["Machine_ID"].Value;
                     string MachineFolder = LocalFilePath + "\\" + Machine_ID + "\\";
 
                     string folderPath = $"{MachineFolder}mold_validation";
@@ -164,7 +164,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     }
 
                 }
-                }
+                //}
                 //Console.ReadLine();
             }
             catch (Exception ex)
