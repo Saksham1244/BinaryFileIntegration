@@ -63,6 +63,12 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     string ValidationFile_Path = machValidation.DownloadValidationFile(mldMacValid.Machine_Id);
                     Console.WriteLine(ValidationFile_Path);
 
+                    if (string.IsNullOrEmpty(ValidationFile_Path))
+                    {
+                        Console.WriteLine($"ValidationFile_Path is null or empty for Machine_Id: {mldMacValid.Machine_Id}. Skipping transfer.");
+                        continue;
+                    }
+
                     SessionOptions sessionOptions = new SessionOptions
                     {
                         Protocol = Protocol.Ftp,
