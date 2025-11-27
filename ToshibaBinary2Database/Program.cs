@@ -30,12 +30,12 @@ namespace ToshibaBinary2Database
                 {
                     byte[] buffer = reader.ReadBytes(Marshal.SizeOf(typeof(tAlaInfo)));
 
-                    for (int i = 0; i < buffer.Length; i = i + 3)
+                    for (int i = 0; i < buffer.Length; i=i+3)
                     {
                         string Alarm_Number = buffer[i].ToString();
 
-                        uint s = buffer[i + 1];
-                        uint r = buffer[i + 2];
+                        uint s = buffer[i+1];
+                        uint r = buffer[i+2];
                         DateTime Set_Date_Time = DateTimeOffset.FromUnixTimeSeconds(s).LocalDateTime;
                         DateTime Reset_Date_Time = DateTimeOffset.FromUnixTimeSeconds(r).LocalDateTime;
                     }
@@ -60,7 +60,7 @@ namespace ToshibaBinary2Database
             }
         }
 
-
+        
 
         static void Main(string[] args)
         {
@@ -76,13 +76,13 @@ namespace ToshibaBinary2Database
             //  mld.read_Mold_Files();
 
             Alarm_Data alarm = new Alarm_Data();
-            alarm.read_Alarm_Files("MACHINE_001", @"D:\download");
+            alarm.read_Alarm_Files();
 
             // MoldMachineValidation mmv = new MoldMachineValidation();
             // mmv.read_MldMacVld_Files();
 
 
-            // ReadAlarm(@"D:\download\Alarm\Alarm_20250828121748.alm",  ref AlaInfo[0]);
+           // ReadAlarm(@"D:\download\Alarm\Alarm_20250828121748.alm",  ref AlaInfo[0]);
 
 
 
