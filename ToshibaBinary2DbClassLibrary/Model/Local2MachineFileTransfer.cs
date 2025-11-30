@@ -27,8 +27,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
             {
 
 
-                // var MachConfigFilePath = ConfigurationManager.AppSettings["MachConfigFilePath"];
-                var MachConfigFilePath = @"D:\ToshibaIntegrationTesting\ConfigurationFile\MachineConfiguration.xml";
+                var MachConfigFilePath = ConfigurationManager.AppSettings["MachConfigFilePath"];
+                //var MachConfigFilePath = @"D:\ToshibaIntegrationTesting\ConfigurationFile\MachineConfiguration.xml";
             //open the XML File having the Machine configuration
             XmlDocument doc = new XmlDocument();
             doc.Load(MachConfigFilePath);
