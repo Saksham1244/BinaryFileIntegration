@@ -26,7 +26,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             try
             {
 
-
+                // local path for machine xml can be changes appsetting config
                 var MachConfigFilePath = ConfigurationManager.AppSettings["MachConfigFilePath"];
                 //var MachConfigFilePath = @"D:\ToshibaIntegrationTesting\ConfigurationFile\MachineConfiguration.xml";
             //open the XML File having the Machine configuration
