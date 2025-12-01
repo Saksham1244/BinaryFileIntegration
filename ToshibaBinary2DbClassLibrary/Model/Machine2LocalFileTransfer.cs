@@ -55,6 +55,10 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         {
                             string ftpAddress = node.Attributes["Machine_IP"].Value;
                             string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
+                            if (string.IsNullOrWhiteSpace(filePathOnFtp))
+                            {
+                                filePathOnFtp = "/";
+                            }
                             string username = node.Attributes["Machine_Ftp_ID"].Value;
                             string password = node.Attributes["Machine_Ftp_Pwd"].Value;
 
