@@ -31,7 +31,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public void read_MAC_Files(string Machine_ID, string LocalFilePath)
+        public void read_MAC_Files(string Machine_ID, string LocalFilePath, bool useBigEndian = false)
         {
             try
             {
@@ -125,7 +125,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         using (IDbConnection db = new SqlConnection(cs))
                         {
                             prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
-                            read_MAC_File(fileName);
+                            read_MAC_File(fileName, useBigEndian);
                             //SET Machine Id , Prod Date and Shift name 
                             MDD.Machine_Id = Machine_ID;
                             MDD.ProdDate = prodDateAndShift.ProdDate;
@@ -156,7 +156,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             }
         }
 
-        void read_MAC_File(string filename)
+        void read_MAC_File(string filename, bool useBigEndian = false)
         {
             using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
@@ -164,6 +164,13 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 {
                     MacPara macParaData = new MacPara();
                     macParaData = reader.ReadClass<MacPara>();
+
+                    // Fix endianness for float values if needed
+                    if (useBigEndian)
+                    {
+                        macParaData.Shot_Weight = ReverseFloat(macParaData.Shot_Weight);
+                        macParaData.Ideal_Cycle_Time = ReverseFloat(macParaData.Ideal_Cycle_Time);
+                    }
 
                     MDD.Machine_Name = macParaData.Machine_Name;
                     MDD.Machine_Serial_Number = macParaData.Machine_Serial_Number;
@@ -190,6 +197,13 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                 }
             }
+        }
+
+        private float ReverseFloat(float value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            Array.Reverse(bytes);
+            return BitConverter.ToSingle(bytes, 0);
         }
     }
 

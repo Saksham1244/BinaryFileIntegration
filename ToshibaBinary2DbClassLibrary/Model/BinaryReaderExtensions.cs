@@ -45,5 +45,32 @@ namespace ToshibaBinary2DbClassLibrary.Model
             Marshal.FreeHGlobal(ptr);
             return bytes;
         }
+
+        /// <summary>
+        /// Reads a single-precision floating point number in Big-Endian format
+        /// Use this for machines that send data in Big-Endian byte order
+        /// </summary>
+        public static float ReadSingleBigEndian(this BinaryReader reader)
+        {
+            byte[] bytes = reader.ReadBytes(4);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+            return BitConverter.ToSingle(bytes, 0);
+        }
+
+        /// <summary>
+        /// Reads a 32-bit integer in Big-Endian format
+        /// </summary>
+        public static int ReadInt32BigEndian(this BinaryReader reader)
+        {
+            byte[] bytes = reader.ReadBytes(4);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+            return BitConverter.ToInt32(bytes, 0);
+        }
     }
 }

@@ -65,6 +65,17 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             string Machine_ID = node.Attributes["Machine_ID"].Value;
                             string MachineFolder = LocalFilePath + "\\" + Machine_ID + "\\";
 
+                            // Read UseBigEndian attribute (defaults to false if not present)
+                            bool useBigEndian = false;
+                            if (node.Attributes["UseBigEndian"] != null)
+                            {
+                                bool.TryParse(node.Attributes["UseBigEndian"].Value, out useBigEndian);
+                            }
+                            
+                            // Debug logging
+                            logger.Info($"Machine {Machine_ID}: UseBigEndian = {useBigEndian}");
+                            Console.WriteLine($"Machine {Machine_ID}: UseBigEndian = {useBigEndian}");
+
                             //Create directory if not exists
                             Directory.CreateDirectory(MachineFolder);
 
@@ -161,13 +172,13 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             await Task.Run(() =>
                             {
                                 ProcessData pd = new ProcessData();
-                                pd.read_PDS_Files(Machine_ID, LocalFilePath);
+                                pd.read_PDS_Files(Machine_ID, LocalFilePath, useBigEndian);
 
                                 Machine_Data md = new Machine_Data();
-                                md.read_MAC_Files(Machine_ID, LocalFilePath);
+                                md.read_MAC_Files(Machine_ID, LocalFilePath, useBigEndian);
 
                                 Moulding_Data mld = new Moulding_Data();
-                                mld.read_Mold_Files(Machine_ID, LocalFilePath);
+                                mld.read_Mold_Files(Machine_ID, LocalFilePath, useBigEndian);
 
                                 Alarm_Data alarm = new Alarm_Data();
                                 alarm.read_Alarm_Files(Machine_ID, LocalFilePath);

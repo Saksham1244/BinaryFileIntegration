@@ -75,8 +75,8 @@ namespace ToshibaBinary2Database
             //  Moulding_Data mld = new Moulding_Data();
             //  mld.read_Mold_Files();
 
-            Alarm_Data alarm = new Alarm_Data();
-            alarm.read_Alarm_Files();
+            // Alarm_Data alarm = new Alarm_Data();
+            // alarm.read_Alarm_Files();
 
             // MoldMachineValidation mmv = new MoldMachineValidation();
             // mmv.read_MldMacVld_Files();
