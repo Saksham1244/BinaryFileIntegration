@@ -29,7 +29,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             CFG = ConfigurationManager.OpenExeConfiguration(assemblyPath);
         }
 
-        public void read_Mold_Files(string Machine_ID, string LocalFilePath)
+        public void read_Mold_Files(string Machine_ID, string LocalFilePath, bool useBigEndian = false)
         {
             try
             {
@@ -204,7 +204,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 prodDateAndShift.ShiftName = "A";
                             }
 
-                            read_Mold_File(fileName);
+                            read_Mold_File(fileName, useBigEndian);
+
 
                             //SET Machine Id , Prod Date and Shift name 
                             MMD.Machine_Id = Machine_ID;
@@ -236,7 +237,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
         }
 
 
-        void read_Mold_File(string filename)
+        void read_Mold_File(string filename, bool useBigEndian = false)
         {
 
             using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
@@ -245,6 +246,12 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 {
                     MacMold macMoldData = new MacMold();
                     macMoldData = reader.ReadClass<MacMold>();
+
+                    // Fix endianness for all float values if needed
+                    if (useBigEndian)
+                    {
+                        ReverseAllFloats(macMoldData);
+                    }
 
                     MMD.Injection_pressure_step_1 = macMoldData.Injection_pressure_step_1.ToString();
                     MMD.Injection_pressure_step_2 = macMoldData.Injection_pressure_step_2.ToString();
@@ -306,6 +313,21 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
 
                 }
+            }
+        }
+
+        private void ReverseAllFloats(MacMold data)
+        {
+            // Use reflection to reverse all float fields
+            foreach (var field in typeof(MacMold).GetFields())
+            {
+                if (field.FieldType == typeof(Single))
+                {
+                    float value = (float)field.GetValue(data);
+                    byte[] bytes = BitConverter.GetBytes(value);
+                    Array.Reverse(bytes);
+                    field.SetValue(data, BitConverter.ToSingle(bytes, 0));
+                  }
             }
         }
     }

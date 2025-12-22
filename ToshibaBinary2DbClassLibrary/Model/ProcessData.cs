@@ -33,7 +33,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public void read_PDS_Files(string Machine_ID, string LocalFilePath, int tacTime)
+        public void read_PDS_Files(string Machine_ID, string LocalFilePath, int tacTime, bool useBigEndian = false)
         {
             try { 
                 var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
@@ -186,8 +186,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 prodDateAndShift.ShiftName = "A";
                             }
 
-                            read_PDS_File(fileName);
-                            //SET Machine Id , Prod Date and Shift name 
+                            read_PDS_File(fileName, useBigEndian);
+                        //SET Machine Id , Prod Date and Shift name 
+
                             MPD.Machine_Id = Machine_ID;
                             MPD.ProdDate = prodDateAndShift.ProdDate;
                             MPD.ShiftName = prodDateAndShift.ShiftName;
@@ -270,7 +271,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
         }
 
         //void read_PDS_File(string filename, ref TPDSinfoFloat data)
-        void read_PDS_File(string filename)
+        void read_PDS_File(string filename, bool useBigEndian = false)
         {
             using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
@@ -289,38 +290,79 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                     MPD.Date_Time = $"{DatTim.tm_mday}-{DatTim.tm_mon}-{temp} {DatTim.tm_hour}-{DatTim.tm_min}-{DatTim.tm_sec}";
 
+                    // Debug logging
+                    logger.Info($"Reading PDS file with useBigEndian = {useBigEndian}");
+                    Console.WriteLine($"DEBUG: Reading PDS with useBigEndian = {useBigEndian}");
 
-                    MPD.Shot_Count = reader.ReadSingle().ToString();
-                    MPD.Cycle_Time = reader.ReadSingle().ToString();
-                    MPD.Injection_Time = reader.ReadSingle().ToString();
-                    MPD.Dosing_Time = reader.ReadSingle().ToString();
-                    MPD.Dosing_Stop = reader.ReadSingle().ToString();
-                    MPD.Melt_Cushion = reader.ReadSingle().ToString();
-                    MPD.Switch_Over_Position = reader.ReadSingle().ToString();
-                    MPD.Mold_Close_Time = reader.ReadSingle().ToString();
-                    MPD.Mold_Open_Time = reader.ReadSingle().ToString();
-                    MPD.Zone_3_Temperature = reader.ReadSingle().ToString();
-                    MPD.Nozzle_1_Temeprature = reader.ReadSingle().ToString();
-                    MPD.Feed_Temperature = reader.ReadSingle().ToString();
-                    MPD.Zone_1_Temeprature = reader.ReadSingle().ToString();
-                    MPD.Zone_2_Temeprature = reader.ReadSingle().ToString();
-                    MPD.Zone_4_Temeprature = reader.ReadSingle().ToString();
-                    MPD.Oil_Temperature = reader.ReadSingle().ToString();
-                    MPD.Melt_Temperature = reader.ReadSingle().ToString();
-                    MPD.Nozzle_2_Temperaturee = reader.ReadSingle().ToString();
-                    MPD.Switch_Over_Pressure = reader.ReadSingle().ToString();
-                    MPD.Tonnage = reader.ReadSingle().ToString();
-                    MPD.Mold_Open_Stop = reader.ReadSingle().ToString();
-                    MPD.Tonnage_Build_Time = reader.ReadSingle().ToString();
-                    MPD.Tonnage_Release_Time = reader.ReadSingle().ToString();
-                    MPD.Ejector_Forward_Time = reader.ReadSingle().ToString();
-                    MPD.Ejector_Back_Time = reader.ReadSingle().ToString();
-                    MPD.Minimum_Melt_Cushion = reader.ReadSingle().ToString();
-                    MPD.Injection_Start_Position = reader.ReadSingle().ToString();
-                    MPD.Peak_Injection_Pressure = reader.ReadSingle().ToString();
-                    MPD.Mold_Zone1_Temperature = reader.ReadSingle().ToString();
-                    MPD.Mold_Zone2_Temperature = reader.ReadSingle().ToString();
-                    MPD.MTC_Temperature = reader.ReadSingle().ToString();
+                    // Use endianness-aware reading based on machine configuration
+                    if (useBigEndian)
+                    {
+                        MPD.Shot_Count = reader.ReadSingleBigEndian().ToString();
+                        MPD.Cycle_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Injection_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Dosing_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Dosing_Stop = reader.ReadSingleBigEndian().ToString();
+                        MPD.Melt_Cushion = reader.ReadSingleBigEndian().ToString();
+                        MPD.Switch_Over_Position = reader.ReadSingleBigEndian().ToString();
+                        MPD.Mold_Close_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Mold_Open_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Zone_3_Temperature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Nozzle_1_Temeprature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Feed_Temperature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Zone_1_Temeprature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Zone_2_Temeprature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Zone_4_Temeprature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Oil_Temperature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Melt_Temperature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Nozzle_2_Temperaturee = reader.ReadSingleBigEndian().ToString();
+                        MPD.Switch_Over_Pressure = reader.ReadSingleBigEndian().ToString();
+                        MPD.Tonnage = reader.ReadSingleBigEndian().ToString();
+                        MPD.Mold_Open_Stop = reader.ReadSingleBigEndian().ToString();
+                        MPD.Tonnage_Build_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Tonnage_Release_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Ejector_Forward_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Ejector_Back_Time = reader.ReadSingleBigEndian().ToString();
+                        MPD.Minimum_Melt_Cushion = reader.ReadSingleBigEndian().ToString();
+                        MPD.Injection_Start_Position = reader.ReadSingleBigEndian().ToString();
+                        MPD.Peak_Injection_Pressure = reader.ReadSingleBigEndian().ToString();
+                        MPD.Mold_Zone1_Temperature = reader.ReadSingleBigEndian().ToString();
+                        MPD.Mold_Zone2_Temperature = reader.ReadSingleBigEndian().ToString();
+                        MPD.MTC_Temperature = reader.ReadSingleBigEndian().ToString();
+                    }
+                    else
+                    {
+                        MPD.Shot_Count = reader.ReadSingle().ToString();
+                        MPD.Cycle_Time = reader.ReadSingle().ToString();
+                        MPD.Injection_Time = reader.ReadSingle().ToString();
+                        MPD.Dosing_Time = reader.ReadSingle().ToString();
+                        MPD.Dosing_Stop = reader.ReadSingle().ToString();
+                        MPD.Melt_Cushion = reader.ReadSingle().ToString();
+                        MPD.Switch_Over_Position = reader.ReadSingle().ToString();
+                        MPD.Mold_Close_Time = reader.ReadSingle().ToString();
+                        MPD.Mold_Open_Time = reader.ReadSingle().ToString();
+                        MPD.Zone_3_Temperature = reader.ReadSingle().ToString();
+                        MPD.Nozzle_1_Temeprature = reader.ReadSingle().ToString();
+                        MPD.Feed_Temperature = reader.ReadSingle().ToString();
+                        MPD.Zone_1_Temeprature = reader.ReadSingle().ToString();
+                        MPD.Zone_2_Temeprature = reader.ReadSingle().ToString();
+                        MPD.Zone_4_Temeprature = reader.ReadSingle().ToString();
+                        MPD.Oil_Temperature = reader.ReadSingle().ToString();
+                        MPD.Melt_Temperature = reader.ReadSingle().ToString();
+                        MPD.Nozzle_2_Temperaturee = reader.ReadSingle().ToString();
+                        MPD.Switch_Over_Pressure = reader.ReadSingle().ToString();
+                        MPD.Tonnage = reader.ReadSingle().ToString();
+                        MPD.Mold_Open_Stop = reader.ReadSingle().ToString();
+                        MPD.Tonnage_Build_Time = reader.ReadSingle().ToString();
+                        MPD.Tonnage_Release_Time = reader.ReadSingle().ToString();
+                        MPD.Ejector_Forward_Time = reader.ReadSingle().ToString();
+                        MPD.Ejector_Back_Time = reader.ReadSingle().ToString();
+                        MPD.Minimum_Melt_Cushion = reader.ReadSingle().ToString();
+                        MPD.Injection_Start_Position = reader.ReadSingle().ToString();
+                        MPD.Peak_Injection_Pressure = reader.ReadSingle().ToString();
+                        MPD.Mold_Zone1_Temperature = reader.ReadSingle().ToString();
+                        MPD.Mold_Zone2_Temperature = reader.ReadSingle().ToString();
+                        MPD.MTC_Temperature = reader.ReadSingle().ToString();
+                    }
 
 
 

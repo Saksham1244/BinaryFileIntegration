@@ -34,6 +34,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 //open the XML File having the Machine configuration
                 XmlDocument doc = new XmlDocument();
                 doc.Load(MachConfigFilePath);
+                // List of folders to read on the FTP directory
+
 
 
                 foreach (XmlNode node in doc.DocumentElement.ChildNodes)
@@ -41,12 +43,20 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     Task.Run(async () =>
                     {
                         // Get TacTime from XML, default to 60 seconds if missing or invalid
+                        // Get TacTime and BigEndian from XML
                         int tacTime = 60;
                         if (node.Attributes["TacTime"] != null)
                         {
                             int.TryParse(node.Attributes["TacTime"].Value, out tacTime);
                         }
-                        logger.Info($"Starting polling for Machine {node.Attributes["Machine_ID"].Value} with TacTime: {tacTime} seconds.");
+
+                        bool useBigEndian = false;
+                        if (node.Attributes["UseBigEndian"] != null)
+                        {
+                            bool.TryParse(node.Attributes["UseBigEndian"].Value, out useBigEndian);
+                        }
+
+                        logger.Info($"Starting polling for Machine {node.Attributes["Machine_ID"].Value} with TacTime: {tacTime} seconds, UseBigEndian: {useBigEndian}.");
 
                         while (true)
                         {
@@ -58,6 +68,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 string ftpAddress = node.Attributes["Machine_IP"].Value;
 
                                 // --- Ping Check ---
+                                // Debug: List files in the directory to verify existence and path
+
                                 try
                                 {
                                     using (Ping ping = new Ping())
@@ -145,13 +157,13 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 await Task.Run(() =>
                                 {
                                     ProcessData pd = new ProcessData();
-                                    pd.read_PDS_Files(Machine_ID, LocalFilePath, tacTime);
+                                    pd.read_PDS_Files(Machine_ID, LocalFilePath, tacTime, useBigEndian);
 
                                     Machine_Data md = new Machine_Data();
-                                    md.read_MAC_Files(Machine_ID, LocalFilePath);
+                                    md.read_MAC_Files(Machine_ID, LocalFilePath, useBigEndian);
 
                                     Moulding_Data mld = new Moulding_Data();
-                                    mld.read_Mold_Files(Machine_ID, LocalFilePath);
+                                    mld.read_Mold_Files(Machine_ID, LocalFilePath, useBigEndian);
 
                                     Alarm_Data alarm = new Alarm_Data();
                                     alarm.read_Alarm_Files(Machine_ID, LocalFilePath);
@@ -200,6 +212,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                             // Wait for TacTime before next poll
                             await Task.Delay(tacTime * 1000);
+
                         }
                     });
                 }

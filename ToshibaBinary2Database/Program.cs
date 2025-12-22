@@ -69,9 +69,11 @@ namespace ToshibaBinary2Database
             Machine2LocalFileTransfer mac2LocFilTrans = new ToshibaBinary2DbClassLibrary.Model.Machine2LocalFileTransfer();
             mac2LocFilTrans.StartPolling();
 
+
             // Keep the application running
             Console.WriteLine("Polling started. Press Enter to exit...");
             Console.ReadLine();
+
         }
     }
 }
