@@ -1,0 +1,25 @@
+  Determining projects to restore...
+  Nothing to do. None of the projects specified contain packages to restore.
+  ToshibaBinary2DbClassLibrary -> C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2DbClassLibrary\bin\Debug\ToshibaBinary2DbClassLibrary.dll
+  ToshibaLocal2Machines -> C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaLocal2Machines\bin\Debug\ToshibaLocal2Machines.exe
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(16,21): warning CS0649: Field 'tAlaInfo.AlaNum' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(18,21): warning CS0649: Field 'tAlaInfo.AlaOffDateTime' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(17,21): warning CS0649: Field 'tAlaInfo.AlaOnDateTime' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+  ToshibaMachines2Local -> C:\Users\admin\Desktop\BinaryFileIntegration\TBin2DbConsole\bin\Debug\TBin2DbConsole.exe
+  ToshibaBinary2Database -> C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\bin\Debug\ToshibaBinary2Database.exe
+C:\Program Files\dotnet\sdk\9.0.306\Microsoft.Common.CurrentVersion.targets(3455,5): error MSB4216: Could not run the "GenerateResource" task because MSBuild could not create or connect to a task host with runtime "NET" and architecture "x86".  Please ensure that (1) the requested runtime and/or architecture are available on the machine, and (2) that the required executable "C:\Program Files\dotnet\sdk\9.0.306\MSBuild.dll" exists and can be run. [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\ToshibaMacine2Local2DbWinService.csproj]
+C:\Program Files\dotnet\sdk\9.0.306\Microsoft.Common.CurrentVersion.targets(3479,7): error MSB4028: The "GenerateResource" task's outputs could not be retrieved from the "FilesWritten" parameter. Object type Microsoft.Build.Tasks.GenerateResource does not match target type Microsoft.Build.BackEnd.TaskHostTask. [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\ToshibaMacine2Local2DbWinService.csproj]
+
+Build FAILED.
+
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(16,21): warning CS0649: Field 'tAlaInfo.AlaNum' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(18,21): warning CS0649: Field 'tAlaInfo.AlaOffDateTime' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(17,21): warning CS0649: Field 'tAlaInfo.AlaOnDateTime' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Program Files\dotnet\sdk\9.0.306\Microsoft.Common.CurrentVersion.targets(3455,5): error MSB4216: Could not run the "GenerateResource" task because MSBuild could not create or connect to a task host with runtime "NET" and architecture "x86".  Please ensure that (1) the requested runtime and/or architecture are available on the machine, and (2) that the required executable "C:\Program Files\dotnet\sdk\9.0.306\MSBuild.dll" exists and can be run. [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\ToshibaMacine2Local2DbWinService.csproj]
+C:\Program Files\dotnet\sdk\9.0.306\Microsoft.Common.CurrentVersion.targets(3479,7): error MSB4028: The "GenerateResource" task's outputs could not be retrieved from the "FilesWritten" parameter. Object type Microsoft.Build.Tasks.GenerateResource does not match target type Microsoft.Build.BackEnd.TaskHostTask. [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\ToshibaMacine2Local2DbWinService.csproj]
+    3 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:04.74
+
+Workload updates are available. Run `dotnet workload list` for more information.
