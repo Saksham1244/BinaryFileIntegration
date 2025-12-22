@@ -40,10 +40,11 @@ namespace ToshibaBinary2DbClassLibrary.Model
             {
                  alarmNames = File.ReadAllLines(filePath).ToList<string>();               
             }
+
             catch (FileNotFoundException)
             {
-                
-                
+                 logger.Warn("AlarmText.txt not found. Alarms will be logged without text descriptions.");
+                 alarmNames = new List<string>();
             }
             catch (IOException ex)
             {
@@ -80,17 +81,15 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     string readFolderPath = $"{MachineFolder}Alarm\\read\\";
 
 
+                using (IDbConnection db = new SqlConnection(cs))
+                {
                     foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.alm"))
                     {
-                        string InsertMachine_Alarm = @"INSERT INTO [dbo].[Alarm_Data]
+                        string InsertMachine_Alarm = @"INSERT INTO [dbo].[Machine_Alarm_Data]
                                                     (
 		                                                   [Alarm_Number]
                                                            ,[Set_Date_Time]
                                                            ,[Reset_Date_Time]
-                                                           ,[Alarm_Status]
-                                                           ,[Machine_Id]
-                                                           ,[ProdDate]
-                                                           ,[ShiftName]
 
 		                                                   )
                                                      VALUES
@@ -98,42 +97,47 @@ namespace ToshibaBinary2DbClassLibrary.Model
 			                                                @Alarm_Number
                                                            ,@Set_Date_Time
                                                            ,@Reset_Date_Time
-                                                           ,@Alarm_Status  
-                                                           ,@Machine_Id
-                                                           ,@ProdDate
-                                                           ,@ShiftName
 		                                              )";
                         string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
                                                 where StationID=(
                                                 select StationID from Config_Equipment where EquipmentID=@EquipmentID)";
                         ProdDateAndShift prodDateAndShift = new ProdDateAndShift();
 
-
-                        using (IDbConnection db = new SqlConnection(cs))
+                        try
                         {
                             prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
-
-                            read_Alarm_File(fileName);
-                            //SET Machine Id , Prod Date and Shift name 
-                            foreach(Machine_Alarm_Data _Alarm_Data in ALM)
-                            {
-                                _Alarm_Data.Machine_Id = Machine_ID;
-                                _Alarm_Data.ProdDate = prodDateAndShift.ProdDate;
-                                _Alarm_Data.ShiftName = prodDateAndShift.ShiftName;
-                            }
-                            
-
-                            int rowsAffected = db.Execute(InsertMachine_Alarm, ALM);
-                            if (rowsAffected > 0)
-                            {
-                                Directory.CreateDirectory(readFolderPath);
-                                string readFileName = fileName.Replace($"\\Alarm", $"\\Alarm\\read");
-                                //moving file
-                                File.Move(fileName, readFileName);
-                            }
-                            Console.WriteLine(rowsAffected);
+                            // logger.Info($"Successfully retrieved ProdDate: {prodDateAndShift.ProdDate}, Shift: {prodDateAndShift.ShiftName}");
                         }
+                        catch (Exception queryEx)
+                        {
+                            logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID}: {queryEx.Message}");
+                            Console.WriteLine($"WARNING: Could not find ProdDate/Shift for Machine {Machine_ID}, using defaults");
+                            // Set defaults if query fails
+                            prodDateAndShift.ProdDate = DateTime.Now.Date;
+                            prodDateAndShift.ShiftName = "A";
+                        }
+
+                        read_Alarm_File(fileName);
+                        //SET Machine Id , Prod Date and Shift name 
+                        foreach(Machine_Alarm_Data _Alarm_Data in ALM)
+                        {
+                            _Alarm_Data.Machine_Id = Machine_ID;
+                            _Alarm_Data.ProdDate = prodDateAndShift.ProdDate;
+                            _Alarm_Data.ShiftName = prodDateAndShift.ShiftName;
+                        }
+                        
+
+                        int rowsAffected = db.Execute(InsertMachine_Alarm, ALM);
+                        if (rowsAffected > 0)
+                        {
+                            Directory.CreateDirectory(readFolderPath);
+                            string readFileName = fileName.Replace($"\\Alarm", $"\\Alarm\\read");
+                            //moving file
+                            File.Move(fileName, readFileName);
+                        }
+                        Console.WriteLine($"Alarm has been updated into the db for Machine: {Machine_ID}. Rows updated: {rowsAffected}");
                     }
+                }
                 //}
             }
             catch (Exception ex)
@@ -175,7 +179,17 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         if (Reset_Date_Time > DateTime.Now)
                             s_Reset_Date_Time = "ALARM IS STILL ACTIVE";
 
-                        ALM.Add(new Machine_Alarm_Data { NID = 0, Alarm_Number = Alarm_Number.ToString(), Set_Date_Time = s_Set_Date_Time, Reset_Date_Time = s_Reset_Date_Time, Alarm_Status= alarmNames[(int)Alarm_Number] });
+                        string alarmStatus = "Unknown Alarm";
+                        if (alarmNames != null && Alarm_Number < alarmNames.Count)
+                        {
+                            alarmStatus = alarmNames[(int)Alarm_Number];
+                        }
+                        else
+                        {
+                            alarmStatus = $"Alarm #{Alarm_Number} (Text missing)";
+                        }
+
+                        ALM.Add(new Machine_Alarm_Data { NID = 0, Alarm_Number = Alarm_Number.ToString(), Set_Date_Time = s_Set_Date_Time, Reset_Date_Time = s_Reset_Date_Time, Alarm_Status = alarmStatus });
                         i++;
                     }
                    

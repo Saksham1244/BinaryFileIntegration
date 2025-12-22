@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using WinSCP;
 using NLog;
-using System.Reflection;
-using System.IO;
-
+using WinSCP;
 
 namespace ToshibaBinary2DbClassLibrary.Model
 {
@@ -17,7 +19,10 @@ namespace ToshibaBinary2DbClassLibrary.Model
     {
         private static Logger logger = LogManager.GetCurrentClassLogger();
         Configuration CFG;
-        public async Task TransferBinaryFiles()
+
+
+
+        public void StartPolling()
         {
             try
             {
@@ -30,173 +35,167 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                 bool _ClearSourceFileOnDownload = (ClearSourceFileOnDownload == "1" || ClearSourceFileOnDownload.Equals("true", StringComparison.OrdinalIgnoreCase));
 
-
-                Console.WriteLine(MachConfigFilePath);
-                Console.WriteLine(LocalFilePath);
-                Console.WriteLine(ClearSourceFileOnDownload);
-
-
-
                 //open the XML File having the Machine configuration
                 XmlDocument doc = new XmlDocument();
                 doc.Load(MachConfigFilePath);
 
-                // List of folders to read on the FTP directory
-
-                //List<string> DataFolders = new List<string>(new string[] { "pds_para", "mac_para", "Alarm", "molding_para" });
-
-                List<Task> machineTasks = new List<Task>();
 
                 foreach (XmlNode node in doc.DocumentElement.ChildNodes)
                 {
-                    machineTasks.Add(Task.Run(async () =>
+                    Task.Run(async () =>
                     {
-                        try
+                        string Machine_ID = node.Attributes["Machine_ID"].Value;
+                        
+                        // Get TacTime from XML, default to 60 seconds if missing or invalid
+                        int tacTime = 60;
+                        if (node.Attributes["TacTime"] != null)
                         {
-                            string ftpAddress = node.Attributes["Machine_IP"].Value;
-                            string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
-                            string username = node.Attributes["Machine_Ftp_ID"].Value;
-                            string password = node.Attributes["Machine_Ftp_Pwd"].Value;
-
-                            string Machine_ID = node.Attributes["Machine_ID"].Value;
-                            string MachineFolder = LocalFilePath + "\\" + Machine_ID + "\\";
-
-                            //Create directory if not exists
-                            Directory.CreateDirectory(MachineFolder);
-
-                            Console.WriteLine(MachineFolder);
+                            int.TryParse(node.Attributes["TacTime"].Value, out tacTime);
+                        }
 
 
-                            Console.WriteLine(ftpAddress);
-                            Console.WriteLine(filePathOnFtp);
-                            Console.WriteLine(username);
-                            Console.WriteLine(password);
-                            //return;
 
-                            //Testing setting ftpAddress to local Host
-                            //ftpAddress = "localhost";
+                        logger.Info($"Starting polling for Machine {Machine_ID} with TacTime: {tacTime}s.");
 
-                            // Ensure filePathOnFtp does not have double slashes and ends with /*
-                            string cleanPath = filePathOnFtp.TrimStart('/');
-                            string FtpPath = $"/{cleanPath}/*";
-
-                            // Setup session options
-                            SessionOptions sessionOptions = new SessionOptions
+                        while (true)
+                        {
+                            try
                             {
-                                Protocol = Protocol.Ftp,
-                                HostName = ftpAddress,
-                                UserName = username,
-                                Password = password,
-                                Timeout = TimeSpan.FromSeconds(30)  // 30 second timeout
-                                //,                            SshHostKeyFingerprint = "ssh-rsa 2048 xxxxxxxxxxx..."
-                            };
+                                Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Starting processing for Machine: {Machine_ID}");
 
-                            using (Session session = new Session())
-                            {
-                                // Connect
-                                session.Open(sessionOptions);
+                                string ftpAddress = node.Attributes["Machine_IP"].Value;
 
-                                // Debug: List files in the directory to verify existence and path
+                                // --- Ping Check ---
+                                bool pingSuccess = false;
                                 try
                                 {
-                                    RemoteDirectoryInfo directoryInfo = session.ListDirectory(filePathOnFtp);
-                                    logger.Info($"Listing files in {filePathOnFtp}:");
-                                    foreach (RemoteFileInfo fileInfo in directoryInfo.Files)
+                                    using (Ping ping = new Ping())
                                     {
-                                        logger.Info($" - {fileInfo.Name} (IsDirectory: {fileInfo.IsDirectory})");
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.Error($"Failed to list directory {filePathOnFtp}: {ex.Message}");
-                                }
-
-                                // Download files
-                                TransferOptions transferOptions = new TransferOptions();
-                                transferOptions.TransferMode = TransferMode.Binary;
-                                transferOptions.OverwriteMode = OverwriteMode.Overwrite;
-
-                                TransferOperationResult transferResult = null;
-
-                                // Download files (remove=false, we will delete explicitly)
-                                transferResult = session.GetFiles(FtpPath, MachineFolder, false, transferOptions);
-
-                                // Throw on any error
-                                transferResult.Check();
-
-                                if (transferResult.Transfers.Count > 0)
-                                {
-                                    logger.Info($"Download of {transferResult.Transfers.Count} files succeeded.");
-                                    Console.WriteLine("Files copied successfully");
-
-                                    if (_ClearSourceFileOnDownload)
-                                    {
-                                        logger.Info("Attempting to delete transferred files from FTP...");
-                                        foreach (TransferEventArgs transfer in transferResult.Transfers)
+                                        PingReply reply = ping.Send(ftpAddress, 2000); // 2 second timeout
+                                        if (reply.Status == IPStatus.Success)
                                         {
-                                            try
-                                            {
-                                                // transfer.FileName is the full remote path
-                                                RemovalOperationResult removalResult = session.RemoveFiles(transfer.FileName);
-                                                removalResult.Check();
-                                                logger.Info($"Deleted remote file: {transfer.FileName}");
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                logger.Error($"Failed to delete remote file {transfer.FileName}: {ex.Message}");
-                                            }
+                                            pingSuccess = true;
+                                        }
+                                        else
+                                        {
+                                            logger.Warn($"Ping failed for Machine {Machine_ID} ({ftpAddress}). Status: {reply.Status}.");
+                                            Console.WriteLine($"WARNING: Machine {Machine_ID} is unreachable. Skipping.");
                                         }
                                     }
                                 }
-                                else
+                                catch (Exception pingEx)
                                 {
-                                    logger.Info("No files found to download.");
+                                    logger.Error($"Ping error for Machine {Machine_ID}: {pingEx.Message}.");
                                 }
+
+                                if (pingSuccess)
+                                {
+                                    // ------------------
+                                    string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
+                                    string username = node.Attributes["Machine_Ftp_ID"].Value;
+                                    string password = node.Attributes["Machine_Ftp_Pwd"].Value;
+
+                                    string MachineFolder = LocalFilePath + "\\" + Machine_ID + "\\";
+
+                                    //Create directory if not exists
+                                    Directory.CreateDirectory(MachineFolder);
+
+                                    // Ensure filePathOnFtp does not have double slashes and ends with /*
+                                    string cleanPath = filePathOnFtp.TrimStart('/');
+                                    string FtpPath = $"/{cleanPath}/*";
+
+                                    // Setup session options
+                                    SessionOptions sessionOptions = new SessionOptions
+                                    {
+                                        Protocol = Protocol.Ftp,
+                                        HostName = ftpAddress,
+                                        UserName = username,
+                                        Password = password,
+                                        Timeout = TimeSpan.FromSeconds(30)
+                                    };
+
+                                    using (Session session = new Session())
+                                    {
+                                        // Connect
+                                        session.Open(sessionOptions);
+
+                                        // Download files
+                                        TransferOptions transferOptions = new TransferOptions();
+                                        transferOptions.TransferMode = TransferMode.Binary;
+                                        transferOptions.OverwriteMode = OverwriteMode.Overwrite;
+
+                                        TransferOperationResult transferResult = null;
+
+                                        // Download files (remove=false, we will delete explicitly)
+                                        transferResult = session.GetFiles(FtpPath, MachineFolder, false, transferOptions);
+
+                                        // Throw on any error
+                                        transferResult.Check();
+
+                                        if (transferResult.Transfers.Count > 0)
+
+
+                                        if (_ClearSourceFileOnDownload && transferResult.Transfers.Count > 0)
+                                            {
+                                                foreach (TransferEventArgs transfer in transferResult.Transfers)
+                                                {
+                                                    try
+                                                    {
+                                                        RemovalOperationResult removalResult = session.RemoveFiles(transfer.FileName);
+                                                        removalResult.Check();
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        logger.Error($"Failed to delete remote file {transfer.FileName}: {ex.Message}");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    await Task.Run(() =>
+                                    {
+                                        ProcessData pd = new ProcessData();
+                                        pd.read_PDS_Files(Machine_ID, LocalFilePath);
+
+                                        Machine_Data md = new Machine_Data();
+                                        md.read_MAC_Files(Machine_ID, LocalFilePath);
+
+                                        Moulding_Data mld = new Moulding_Data();
+                                        mld.read_Mold_Files(Machine_ID, LocalFilePath);
+
+                                        Alarm_Data alarm = new Alarm_Data();
+                                        alarm.read_Alarm_Files(Machine_ID, LocalFilePath);
+
+                                        MoldMachineValidation mmv = new MoldMachineValidation();
+                                        mmv.read_MldMacVld_Files(Machine_ID, LocalFilePath);
+
+                                        // Run the stored proc to performance tables
+                                        Performance_CycleTime PC = new Performance_CycleTime();
+                                        PC.InsertPerformanceData();
+                                    });
+                                }
+
+
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.Error($"Error processing machine {Machine_ID}: {ex.Message}");
                             }
 
-                            await Task.Run(() =>
-                            {
-                                ProcessData pd = new ProcessData();
-                                pd.read_PDS_Files(Machine_ID, LocalFilePath);
-
-                                Machine_Data md = new Machine_Data();
-                                md.read_MAC_Files(Machine_ID, LocalFilePath);
-
-                                Moulding_Data mld = new Moulding_Data();
-                                mld.read_Mold_Files(Machine_ID, LocalFilePath);
-
-                                Alarm_Data alarm = new Alarm_Data();
-                                alarm.read_Alarm_Files(Machine_ID, LocalFilePath);
-
-                                MoldMachineValidation mmv = new MoldMachineValidation();
-                                mmv.read_MldMacVld_Files(Machine_ID, LocalFilePath);
-
-                                // Run the stored proc to performance tables
-                                Performance_CycleTime PC = new Performance_CycleTime();
-                                PC.InsertPerformanceData();
-
-
-                            });
+                            // Wait for TacTime before next poll
+                            await Task.Delay(tacTime * 1000);
                         }
-                        catch (Exception ex)
-                        {
-                            logger.Error($"Error processing machine {node.Attributes["Machine_ID"]?.Value}: {ex.Message}");
-                            Console.WriteLine($"Error processing machine {node.Attributes["Machine_ID"]?.Value}: {ex.Message}");
-                        }
-                    }));
+                    });
                 }
-
-                await Task.WhenAll(machineTasks);
-
             }
             catch (Exception ex)
             {
                 logger.Error(ex.Message);
                 Console.WriteLine($"Error: {ex.Message}");
-                //ApplicationLogs.WriteLog(ex.Message);
-
             }
         }
-    }
 
+
+    }
 }

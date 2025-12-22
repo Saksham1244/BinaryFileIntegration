@@ -17,10 +17,13 @@ namespace TBin2DbConsole
         {
             Machine2LocalFileTransfer mac2LocFilTrans = new ToshibaBinary2DbClassLibrary.Model.Machine2LocalFileTransfer();
 
-            await mac2LocFilTrans.TransferBinaryFiles();
+            mac2LocFilTrans.StartPolling();
 
-            Console.WriteLine("Transfer completed. Exiting...");
-            Environment.Exit(0);
+            // Keep the console open to allow background polling to continue
+            Console.WriteLine("Polling started. Press Enter to exit...");
+            Console.ReadLine();
+            
+            //Environment.Exit(0);
         }
 
         

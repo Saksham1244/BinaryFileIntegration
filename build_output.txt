@@ -1,0 +1,18 @@
+  Determining projects to restore...
+  Nothing to do. None of the projects specified contain packages to restore.
+  ToshibaBinary2DbClassLibrary -> C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2DbClassLibrary\bin\Debug\ToshibaBinary2DbClassLibrary.dll
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(79,19): error CS7036: There is no argument given that corresponds to the required parameter 'Machine_ID' of 'Alarm_Data.read_Alarm_Files(string, string)' [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(18,21): warning CS0649: Field 'tAlaInfo.AlaOffDateTime' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(17,21): warning CS0649: Field 'tAlaInfo.AlaOnDateTime' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(16,21): warning CS0649: Field 'tAlaInfo.AlaNum' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+
+Build FAILED.
+
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(18,21): warning CS0649: Field 'tAlaInfo.AlaOffDateTime' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(17,21): warning CS0649: Field 'tAlaInfo.AlaOnDateTime' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(16,21): warning CS0649: Field 'tAlaInfo.AlaNum' is never assigned to, and will always have its default value 0 [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\Program.cs(79,19): error CS7036: There is no argument given that corresponds to the required parameter 'Machine_ID' of 'Alarm_Data.read_Alarm_Files(string, string)' [C:\Users\admin\Desktop\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj]
+    3 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.42
