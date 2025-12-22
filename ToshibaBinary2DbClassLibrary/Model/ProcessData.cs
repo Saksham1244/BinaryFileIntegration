@@ -58,12 +58,14 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     string folderPath = $"{MachineFolder}pds_para";
                     string readFolderPath = $"{MachineFolder}pds_para\\read\\";
 
-                    foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.pds"))
+                    using (IDbConnection db = new SqlConnection(cs))
                     {
+                        foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.pds"))
+                        {
 
-                        //string fileName = "C:\\Users\\lenovo\\Downloads\\PDSData_20240207183749.pds";
+                            //string fileName = "C:\\Users\\lenovo\\Downloads\\PDSData_20240207183749.pds";
 
-                        string InsertMachine_Process_DataTable = @"INSERT INTO [dbo].[Machine_Process_Data]
+                            string InsertMachine_Process_DataTable = @"INSERT INTO [dbo].[Machine_Process_Data]
                                         (
 			                                [Date_Time]
                                            ,[Shot_Count]
@@ -141,14 +143,11 @@ namespace ToshibaBinary2DbClassLibrary.Model
 	                                    )";
 
 
-                        string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
+                            string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
                                                 where StationID=(
                                                 select StationID from Config_Equipment where EquipmentID=@EquipmentID)";
-                        ProdDateAndShift prodDateAndShift= new ProdDateAndShift();
+                            ProdDateAndShift prodDateAndShift = new ProdDateAndShift();
 
-
-                        using (IDbConnection db = new SqlConnection(cs))
-                        {
                             logger.Info($"Querying ProdDate and ShiftName for Machine {Machine_ID}");
                             try
                             {
@@ -163,14 +162,14 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 prodDateAndShift.ProdDate = DateTime.Now.Date;
                                 prodDateAndShift.ShiftName = "A";
                             }
-                            
+
                             read_PDS_File(fileName);
-                        //SET Machine Id , Prod Date and Shift name 
+                            //SET Machine Id , Prod Date and Shift name 
                             MPD.Machine_Id = Machine_ID;
                             MPD.ProdDate = prodDateAndShift.ProdDate;
                             MPD.ShiftName = prodDateAndShift.ShiftName;
 
-                            logger.Info($"Inserting process data for Machine {Machine_ID}, File: {Path.GetFileName(fileName)}");                                        
+                            logger.Info($"Inserting process data for Machine {Machine_ID}, File: {Path.GetFileName(fileName)}");
 
                             int rowsAffected = db.Execute(InsertMachine_Process_DataTable, MPD);
                             logger.Info($"Rows affected: {rowsAffected}");
@@ -189,10 +188,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 Console.WriteLine($"WARNING: No rows inserted for {Path.GetFileName(fileName)}");
                             }
                             //Console.WriteLine(rowsAffected);
+
                         }
-
-
-
                     }
 
 

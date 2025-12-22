@@ -58,10 +58,12 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 
 
 
-                    foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.mac"))
+                    using (IDbConnection db = new SqlConnection(cs))
                     {
+                        foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.mac"))
+                        {
 
-                        string InsertMachine_Mac_DataTable = @"INSERT INTO [dbo].[Machine_Data]
+                            string InsertMachine_Mac_DataTable = @"INSERT INTO [dbo].[Machine_Data]
                                                                (
                                                                 [Machine_Name]
                                                                ,[Machine_Serial_Number]
@@ -116,15 +118,24 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                                                ,@ProdDate
                                                                ,@ShiftName
 	                                                    )";
-                        string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
+                            string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
                                                 where StationID=(
                                                 select StationID from Config_Equipment where EquipmentID=@EquipmentID)";
-                        ProdDateAndShift prodDateAndShift = new ProdDateAndShift();
+                            ProdDateAndShift prodDateAndShift = new ProdDateAndShift();
 
+                            try
+                            {
+                                prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                            }
+                            catch (Exception queryEx)
+                            {
+                                logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID}: {queryEx.Message}");
+                                Console.WriteLine($"WARNING: Could not find ProdDate/Shift for Machine {Machine_ID}, using defaults");
+                                // Set defaults if query fails
+                                prodDateAndShift.ProdDate = DateTime.Now.Date;
+                                prodDateAndShift.ShiftName = "A";
+                            }
 
-                        using (IDbConnection db = new SqlConnection(cs))
-                        {
-                            prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
                             read_MAC_File(fileName);
                             //SET Machine Id , Prod Date and Shift name 
                             MDD.Machine_Id = Machine_ID;
@@ -142,9 +153,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 File.Move(fileName, readFileName);
                             }
                             Console.WriteLine(rowsAffected);
-                    }
 
-                }
+                        }
+                    }
                 //}
 
             }

@@ -1,17 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Machines>
-	<MachineDetails Machine_ID="LIL1600ML-054" Machine_IP="192.168.14.71" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-079" Machine_IP="192.168.14.72" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-011" Machine_IP="192.168.14.75" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-010" Machine_IP="192.168.14.76" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-013" Machine_IP="192.168.14.78" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-043" Machine_IP="192.168.14.84" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-014" Machine_IP="192.168.14.85" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-046" Machine_IP="192.168.14.86" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-004" Machine_IP="192.168.14.87" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-039" Machine_IP="192.168.14.88" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
-    	<MachineDetails Machine_ID="LIL1600ML-002" Machine_IP="192.168.14.89" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />    
-    	<MachineDetails Machine_ID="LIL1600ML-076" Machine_IP="192.168.14.77" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" />
+		<MachineDetails Machine_ID="LIL1600ML-054" Machine_IP="192.168.14.71" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="75" />
+    	<MachineDetails Machine_ID="LIL1600ML-079" Machine_IP="192.168.14.72" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-011" Machine_IP="192.168.14.75" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-010" Machine_IP="192.168.14.76" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-013" Machine_IP="192.168.14.78" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-043" Machine_IP="192.168.14.84" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-014" Machine_IP="192.168.14.85" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-046" Machine_IP="192.168.14.86" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-004" Machine_IP="192.168.14.87" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-039" Machine_IP="192.168.14.88" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-002" Machine_IP="192.168.14.89" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />    
+    	<MachineDetails Machine_ID="LIL1600ML-076" Machine_IP="192.168.14.77" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
 </Machines>
-
-

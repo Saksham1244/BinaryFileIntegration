@@ -31,32 +31,14 @@ namespace ToshibaMacine2Local2DbWinService
         {
             logger.Info("Service is started at " + DateTime.Now);
             
-            Configuration CFG;
-            string assemblyPath = new Uri(Assembly.GetExecutingAssembly().CodeBase).AbsolutePath;
-            CFG = ConfigurationManager.OpenExeConfiguration(assemblyPath);
-
-
-            var _TimeInterval = CFG.AppSettings.Settings["ServiceTimeInterval"].Value;
-            int.TryParse(_TimeInterval,out int TimeInterval);
-
-            timer.Elapsed += new ElapsedEventHandler(OnElapsedTime);
-            timer.Interval = TimeInterval; //number in milisecinds
-            timer.Enabled = true;
-
-
-        }
-
-        private void OnElapsedTime(object source, ElapsedEventArgs e)
-        {
+            // Launch the polling loops for all machines
+            // This runs asynchronously in background tasks
             Machine2LocalFileTransfer mac2LocFilTrans = new ToshibaBinary2DbClassLibrary.Model.Machine2LocalFileTransfer();
-
-            mac2LocFilTrans.TransferBinaryFiles();
-
+            mac2LocFilTrans.StartPolling();
         }
 
         protected override void OnStop()
         {
-            
             logger.Info("Service is stopped at " + DateTime.Now);
         }
 

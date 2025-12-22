@@ -64,28 +64,14 @@ namespace ToshibaBinary2Database
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Starting Toshiba Machine Data Polling Service...");
+            
+            Machine2LocalFileTransfer mac2LocFilTrans = new ToshibaBinary2DbClassLibrary.Model.Machine2LocalFileTransfer();
+            mac2LocFilTrans.StartPolling();
 
-
-            // ProcessData pd = new ProcessData();
-            // pd.read_PDS_Files();
-
-            // Machine_Data md = new Machine_Data();
-            //  md.read_MAC_Files();
-
-            //  Moulding_Data mld = new Moulding_Data();
-            //  mld.read_Mold_Files();
-
-            Alarm_Data alarm = new Alarm_Data();
-            alarm.read_Alarm_Files();
-
-            // MoldMachineValidation mmv = new MoldMachineValidation();
-            // mmv.read_MldMacVld_Files();
-
-
-           // ReadAlarm(@"D:\download\Alarm\Alarm_20250828121748.alm",  ref AlaInfo[0]);
-
-
-
+            // Keep the application running
+            Console.WriteLine("Polling started. Press Enter to exit...");
+            Console.ReadLine();
         }
     }
 }

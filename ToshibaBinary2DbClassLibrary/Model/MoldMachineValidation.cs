@@ -113,6 +113,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     string folderPath = $"{MachineFolder}mold_validation";
                     string readFolderPath = $"{MachineFolder}mold_validation\\read\\";
 
+                using (IDbConnection db = new SqlConnection(cs))
+                {
                     foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.vld"))
                     {
                         string InsertMoldMachValid_DataTable = @"INSERT INTO [dbo].[MoldMachineValidationData]
@@ -141,28 +143,35 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                                 select StationID from Config_Equipment where EquipmentID=@EquipmentID)";
                         ProdDateAndShift prodDateAndShift = new ProdDateAndShift();
 
-
-                        using (IDbConnection db = new SqlConnection(cs))
+                        try
                         {
                             prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                        }
+                        catch (Exception queryEx)
+                        {
+                            logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID}: {queryEx.Message}");
+                            Console.WriteLine($"WARNING: Could not find ProdDate/Shift for Machine {Machine_ID}, using defaults");
+                            // Set defaults if query fails
+                            prodDateAndShift.ProdDate = DateTime.Now.Date;
+                            prodDateAndShift.ShiftName = "A";
+                        }
 
-                            read_Validation_File(fileName);
-                            //SET Machine Id , Prod Date and Shift name 
-                            MMVD.Machine_Id = Machine_ID;
-                            MMVD.ProdDate = prodDateAndShift.ProdDate;
-                            MMVD.ShiftName = prodDateAndShift.ShiftName;
+                        read_Validation_File(fileName);
+                        //SET Machine Id , Prod Date and Shift name 
+                        MMVD.Machine_Id = Machine_ID;
+                        MMVD.ProdDate = prodDateAndShift.ProdDate;
+                        MMVD.ShiftName = prodDateAndShift.ShiftName;
 
-                            int rowsAffected = db.Execute(InsertMoldMachValid_DataTable, MMVD);
-                            if (rowsAffected > 0)
-                            {
-                                Directory.CreateDirectory(readFolderPath);
-                                string readFileName = fileName.Replace($"\\mold_validation", $"\\mold_validation\\read");
-                                //moving file
-                                File.Move(fileName, readFileName);
-                            }
-                            //Console.WriteLine(rowsAffected);
+                        int rowsAffected = db.Execute(InsertMoldMachValid_DataTable, MMVD);
+                        if (rowsAffected > 0)
+                        {
+                            Directory.CreateDirectory(readFolderPath);
+                            string readFileName = fileName.Replace($"\\mold_validation", $"\\mold_validation\\read");
+                            //moving file
+                            File.Move(fileName, readFileName);
+                        }
+                        //Console.WriteLine(rowsAffected);
                     }
-
                 }
                 //}
                 //Console.ReadLine();
