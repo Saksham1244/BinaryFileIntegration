@@ -33,7 +33,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public void read_PDS_Files(string Machine_ID, string LocalFilePath)
+        public void read_PDS_Files(string Machine_ID, string LocalFilePath, int tacTime)
         {
             try { 
                 var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
@@ -58,9 +58,30 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     string folderPath = $"{MachineFolder}pds_para";
                     string readFolderPath = $"{MachineFolder}pds_para\\read\\";
 
+                    if (!Directory.Exists(folderPath)) return;
+
+                    // Sort files chronologically to ensure T2 follows T1 accurately
+                    var files = Directory.EnumerateFiles(folderPath, "*.pds").OrderBy(f => f).ToList();
+                    if (files.Count == 0) return;
+
                     using (IDbConnection db = new SqlConnection(cs))
                     {
-                        foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.pds"))
+                        // Fetch the timestamp of the very last shot recorded for this machine (T1 for the first file)
+                        string getLastTimeQuery = "SELECT TOP 1 Date_Time FROM [Machine_Process_Data] WHERE Machine_Id = @Machine_Id ORDER BY NID DESC";
+                        string lastStoredTimeString = db.QueryFirstOrDefault<string>(getLastTimeQuery, new { Machine_Id = Machine_ID });
+                        DateTime? lastDateTime = null;
+
+                        if (!string.IsNullOrEmpty(lastStoredTimeString))
+                        {
+                            DateTime dt;
+                            // Parsing the T1 timestamp from the database
+                            if (DateTime.TryParseExact(lastStoredTimeString, "d-M-yyyy H-m-s", null, System.Globalization.DateTimeStyles.None, out dt))
+                            {
+                                lastDateTime = dt;
+                            }
+                        }
+
+                        foreach (string fileName in files)
                         {
 
                             //string fileName = "C:\\Users\\lenovo\\Downloads\\PDSData_20240207183749.pds";
@@ -102,6 +123,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                            ,[Machine_Id]
                                            ,[ProdDate]
                                            ,[ShiftName]
+                                           ,[DownTime]
 	                                    )
                                          VALUES
                                         (
@@ -140,6 +162,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                             ,@Machine_Id
                                             ,@ProdDate
                                             ,@ShiftName
+                                            ,@DownTime
 	                                    )";
 
 
@@ -168,6 +191,35 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             MPD.Machine_Id = Machine_ID;
                             MPD.ProdDate = prodDateAndShift.ProdDate;
                             MPD.ShiftName = prodDateAndShift.ShiftName;
+
+                            // --- DownTime Calculation: T2 - T1 - TacTime ---
+                            MPD.DownTime = 0; // Default if t1 is missing
+                            DateTime currentDateTime;
+                            if (DateTime.TryParseExact(MPD.Date_Time, "d-M-yyyy H-m-s", null, System.Globalization.DateTimeStyles.None, out currentDateTime))
+                            {
+                                if (lastDateTime.HasValue)
+                                {
+                                    // T2 = currentDateTime, T1 = lastDateTime
+                                    double diffInSeconds = (currentDateTime - lastDateTime.Value).TotalSeconds;
+                                    double downTimeInSeconds = diffInSeconds - tacTime;
+                                    
+                                    // If cycle is faster than TacTime, downtime is 0
+                                    if (downTimeInSeconds < 0) downTimeInSeconds = 0;
+                                    
+                                    // Convert to minutes
+                                    double downTimeInMinutes = downTimeInSeconds / 60.0;
+
+                                    MPD.DownTime = downTimeInMinutes;
+
+                                    if (downTimeInSeconds >= 1.0)
+                                    {
+                                        logger.Info($"Downtime for {Machine_ID}: (({currentDateTime} - {lastDateTime}) - {tacTime}) / 60 = {MPD.DownTime:F2} min");
+                                    }
+                                }
+                                // Update T1 for the next shot in sequence
+                                lastDateTime = currentDateTime;
+                            }
+                            // -----------------------------------------------
 
                             logger.Info($"Inserting process data for Machine {Machine_ID}, File: {Path.GetFileName(fileName)}");
 
@@ -348,6 +400,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
         public string Machine_Id { get; set; }
         public DateTime ProdDate { get; set; }
         public string ShiftName { get; set; }
+        public double? DownTime { get; set; }
 
 
     }
