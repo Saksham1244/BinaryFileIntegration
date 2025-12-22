@@ -33,7 +33,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public void read_PDS_Files(string Machine_ID, string LocalFilePath)
+        public void read_PDS_Files(string Machine_ID, string LocalFilePath, int tacTime)
         {
             try { 
                 var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
@@ -102,6 +102,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                            ,[Machine_Id]
                                            ,[ProdDate]
                                            ,[ShiftName]
+                                           ,[Downtime]
 	                                    )
                                          VALUES
                                         (
@@ -140,6 +141,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                             ,@Machine_Id
                                             ,@ProdDate
                                             ,@ShiftName
+                                            ,@Downtime
 	                                    )";
 
 
@@ -164,28 +166,82 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             }
 
                             read_PDS_File(fileName);
-                            //SET Machine Id , Prod Date and Shift name 
+
+                            // --- Calculate Downtime (T2 - T1 - TacTime) ---
+                            double downtime = 0;
+                            try
+                            {
+                                string getPreviousShotTime = "SELECT TOP 1 Date_Time FROM Machine_Process_Data WHERE Machine_Id = @Machine_Id ORDER BY Date_Time DESC";
+                                string lastShotTimeStr = db.QueryFirstOrDefault<string>(getPreviousShotTime, new { Machine_Id = Machine_ID });
+
+                                if (!string.IsNullOrEmpty(lastShotTimeStr))
+                                {
+                                    DateTime T2 = DateTime.ParseExact(MPD.Date_Time, "d-M-yyyy H-m-s", null);
+                                    DateTime T1 = DateTime.ParseExact(lastShotTimeStr, "d-M-yyyy H-m-s", null);
+
+                                    double gapSeconds = (T2 - T1).TotalSeconds;
+                                    downtime = gapSeconds - tacTime;
+                                    if (downtime < 1) downtime = 0;
+
+                                    logger.Info($"Downtime calculation for {Machine_ID}: T2({T2}) - T1({T1}) - TacTime({tacTime}) = {downtime}s");
+                                }
+                            }
+                            catch (Exception dtEx)
+                            {
+                                logger.Warn($"Could not calculate downtime for {Machine_ID}: {dtEx.Message}");
+                            }
+
+                            //SET Machine Id , Prod Date, Shift name and Downtime
                             MPD.Machine_Id = Machine_ID;
                             MPD.ProdDate = prodDateAndShift.ProdDate;
                             MPD.ShiftName = prodDateAndShift.ShiftName;
+                            MPD.Downtime = downtime.ToString();
 
-                            logger.Info($"Inserting process data for Machine {Machine_ID}, File: {Path.GetFileName(fileName)}");
+                            // --- Duplicate Check ---
+                            string checkDuplicate = "SELECT COUNT(1) FROM [dbo].[Machine_Process_Data] WHERE [Machine_Id] = @Machine_Id AND [Date_Time] = @Date_Time AND [Shot_Count] = @Shot_Count";
+                            int existingCount = db.ExecuteScalar<int>(checkDuplicate, MPD);
 
-                            int rowsAffected = db.Execute(InsertMachine_Process_DataTable, MPD);
-                            logger.Info($"Rows affected: {rowsAffected}");
-                            if (rowsAffected > 0)
+                            bool proceedToMove = false;
+                            if (existingCount == 0)
                             {
-                                Directory.CreateDirectory(readFolderPath);
-                                string readFileName = fileName.Replace($"\\pds_para", $"\\pds_para\\read");
-                                //moving file
-                                File.Move(fileName, readFileName);
-                                logger.Info($"Successfully inserted and moved file: {Path.GetFileName(fileName)}");
-                                Console.WriteLine($"✓ Processed {Path.GetFileName(fileName)} for Machine {Machine_ID}");
+                                logger.Info($"Inserting process data for Machine {Machine_ID}, File: {Path.GetFileName(fileName)}");
+                                int rowsAffected = db.Execute(InsertMachine_Process_DataTable, MPD);
+                                logger.Info($"Rows affected: {rowsAffected}");
+                                if (rowsAffected > 0) proceedToMove = true;
                             }
                             else
                             {
-                                logger.Warn($"No rows affected for file: {Path.GetFileName(fileName)}");
-                                Console.WriteLine($"WARNING: No rows inserted for {Path.GetFileName(fileName)}");
+                                logger.Warn($"Duplicate record detected for Machine {Machine_ID}, DateTime {MPD.Date_Time}, Shot {MPD.Shot_Count}. Skipping insertion.");
+                                proceedToMove = true; // Still move the file as it's already in the DB
+                            }
+
+                            if (proceedToMove)
+                            {
+                                try
+                                {
+                                    Directory.CreateDirectory(readFolderPath);
+                                    string readFileName = fileName.Replace($"\\pds_para", $"\\pds_para\\read");
+                                    
+                                    if (File.Exists(readFileName))
+                                    {
+                                        logger.Warn($"File {Path.GetFileName(readFileName)} already exists in read folder. Deleting source file.");
+                                        File.Delete(fileName);
+                                    }
+                                    else
+                                    {
+                                        File.Move(fileName, readFileName);
+                                        logger.Info($"Successfully moved file: {Path.GetFileName(fileName)}");
+                                    }
+                                    Console.WriteLine($"✓ Processed {Path.GetFileName(fileName)} for Machine {Machine_ID}");
+                                }
+                                catch (Exception fileEx)
+                                {
+                                    logger.Error($"Failed to handle file {fileName}: {fileEx.Message}");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"WARNING: Failed to process {Path.GetFileName(fileName)} for Machine {Machine_ID}");
                             }
                             //Console.WriteLine(rowsAffected);
 
@@ -348,6 +404,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
         public string Machine_Id { get; set; }
         public DateTime ProdDate { get; set; }
         public string ShiftName { get; set; }
+        public string Downtime { get; set; }
 
 
     }

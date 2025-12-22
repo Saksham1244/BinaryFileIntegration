@@ -133,9 +133,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                         transferResult.Check();
 
                                         if (transferResult.Transfers.Count > 0)
-
-
-                                        if (_ClearSourceFileOnDownload && transferResult.Transfers.Count > 0)
+                                        {
+                                            if (_ClearSourceFileOnDownload)
                                             {
                                                 foreach (TransferEventArgs transfer in transferResult.Transfers)
                                                 {
@@ -156,7 +155,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                     await Task.Run(() =>
                                     {
                                         ProcessData pd = new ProcessData();
-                                        pd.read_PDS_Files(Machine_ID, LocalFilePath);
+                                        pd.read_PDS_Files(Machine_ID, LocalFilePath, tacTime);
 
                                         Machine_Data md = new Machine_Data();
                                         md.read_MAC_Files(Machine_ID, LocalFilePath);
