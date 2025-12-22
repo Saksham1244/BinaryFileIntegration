@@ -1,4 +1,4 @@
-﻿    using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -24,9 +24,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 string assemblyPath = new Uri(Assembly.GetExecutingAssembly().CodeBase).AbsolutePath;
                 CFG = ConfigurationManager.OpenExeConfiguration(assemblyPath);
 
-                var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;                 
-                var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;                 
-                var ClearSourceFileOnDownload = CFG.AppSettings.Settings["ClearSourceFileOnDownload"].Value;               
+                var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;
+                var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
+                var ClearSourceFileOnDownload = CFG.AppSettings.Settings["ClearSourceFileOnDownload"].Value;
 
                 bool _ClearSourceFileOnDownload = (ClearSourceFileOnDownload == "1" || ClearSourceFileOnDownload.Equals("true", StringComparison.OrdinalIgnoreCase));
 
@@ -40,8 +40,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 //open the XML File having the Machine configuration
                 XmlDocument doc = new XmlDocument();
                 doc.Load(MachConfigFilePath);
-                
-            // List of folders to read on the FTP directory
+
+                // List of folders to read on the FTP directory
 
                 //List<string> DataFolders = new List<string>(new string[] { "pds_para", "mac_para", "Alarm", "molding_para" });
 
@@ -75,11 +75,11 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                             //Testing setting ftpAddress to local Host
                             //ftpAddress = "localhost";
-                            
+
                             // Ensure filePathOnFtp does not have double slashes and ends with /*
                             string cleanPath = filePathOnFtp.TrimStart('/');
                             string FtpPath = $"/{cleanPath}/*";
-                            
+
                             // Setup session options
                             SessionOptions sessionOptions = new SessionOptions
                             {
@@ -97,7 +97,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 session.Open(sessionOptions);
 
                                 // Debug: List files in the directory to verify existence and path
-                                try 
+                                try
                                 {
                                     RemoteDirectoryInfo directoryInfo = session.ListDirectory(filePathOnFtp);
                                     logger.Info($"Listing files in {filePathOnFtp}:");
@@ -172,9 +172,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 mmv.read_MldMacVld_Files(Machine_ID, LocalFilePath);
 
                                 // Run the stored proc to performance tables
-                                // TODO: Re-enable this when Perf_CycleTime_Insert stored procedure is available
-                                // Performance_CycleTime PC = new Performance_CycleTime();
-                                // PC.InsertPerformanceData();
+                                Performance_CycleTime PC = new Performance_CycleTime();
+                                PC.InsertPerformanceData();
 
 
                             });
