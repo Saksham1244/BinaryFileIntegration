@@ -158,11 +158,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             }
                             catch (Exception queryEx)
                             {
-                                logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID}: {queryEx.Message}");
-                                Console.WriteLine($"WARNING: Could not find ProdDate/Shift for Machine {Machine_ID}, using defaults");
-                                // Set defaults if query fails
-                                prodDateAndShift.ProdDate = DateTime.Now.Date;
-                                prodDateAndShift.ShiftName = "A";
+                                logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID} in DB: {queryEx.Message}. Using local calculation.");
+                                prodDateAndShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
                             }
 
                             read_PDS_File(fileName);
@@ -219,24 +216,13 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             {
                                 try
                                 {
-                                    Directory.CreateDirectory(readFolderPath);
-                                    string readFileName = fileName.Replace($"\\pds_para", $"\\pds_para\\read");
-                                    
-                                    if (File.Exists(readFileName))
-                                    {
-                                        logger.Warn($"File {Path.GetFileName(readFileName)} already exists in read folder. Deleting source file.");
-                                        File.Delete(fileName);
-                                    }
-                                    else
-                                    {
-                                        File.Move(fileName, readFileName);
-                                        logger.Info($"Successfully moved file: {Path.GetFileName(fileName)}");
-                                    }
-                                    Console.WriteLine($"✓ Processed {Path.GetFileName(fileName)} for Machine {Machine_ID}");
+                                    File.Delete(fileName);
+                                    logger.Info($"Successfully deleted processed file: {Path.GetFileName(fileName)}");
+                                    Console.WriteLine($"✓ Processed and deleted {Path.GetFileName(fileName)} for Machine {Machine_ID}");
                                 }
                                 catch (Exception fileEx)
                                 {
-                                    logger.Error($"Failed to handle file {fileName}: {fileEx.Message}");
+                                    logger.Error($"Failed to delete file {fileName}: {fileEx.Message}");
                                 }
                             }
                             else

@@ -149,11 +149,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         }
                         catch (Exception queryEx)
                         {
-                            logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID}: {queryEx.Message}");
-                            Console.WriteLine($"WARNING: Could not find ProdDate/Shift for Machine {Machine_ID}, using defaults");
-                            // Set defaults if query fails
-                            prodDateAndShift.ProdDate = DateTime.Now.Date;
-                            prodDateAndShift.ShiftName = "A";
+                            logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID} in DB: {queryEx.Message}. Using local calculation.");
+                            prodDateAndShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
                         }
 
                         read_Validation_File(fileName);

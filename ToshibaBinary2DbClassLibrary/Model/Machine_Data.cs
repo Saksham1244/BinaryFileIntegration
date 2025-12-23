@@ -129,11 +129,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             }
                             catch (Exception queryEx)
                             {
-                                logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID}: {queryEx.Message}");
-                                Console.WriteLine($"WARNING: Could not find ProdDate/Shift for Machine {Machine_ID}, using defaults");
-                                // Set defaults if query fails
-                                prodDateAndShift.ProdDate = DateTime.Now.Date;
-                                prodDateAndShift.ShiftName = "A";
+                                logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID} in DB: {queryEx.Message}. Using local calculation.");
+                                prodDateAndShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
                             }
 
                             read_MAC_File(fileName);
@@ -147,10 +144,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             int rowsAffected = db.Execute(InsertMachine_Mac_DataTable, MDD);
                             if (rowsAffected > 0)
                             {
-                                Directory.CreateDirectory(readFolderPath);
-                                string readFileName = fileName.Replace($"\\mac_para", $"\\mac_para\\read");
-                                //moving file
-                                File.Move(fileName, readFileName);
+                                File.Delete(fileName);
                             }
                             Console.WriteLine(rowsAffected);
 

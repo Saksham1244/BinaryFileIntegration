@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 using System.Xml;
 using NLog;
 using WinSCP;
+using Dapper;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace ToshibaBinary2DbClassLibrary.Model
 {
@@ -62,6 +65,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             try
                             {
                                 Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Starting processing for Machine: {Machine_ID}");
+
+                                // Sync current shift info to database
+                                UpdateShiftInDb(Machine_ID);
 
                                 string ftpAddress = node.Attributes["Machine_IP"].Value;
 
@@ -196,5 +202,42 @@ namespace ToshibaBinary2DbClassLibrary.Model
         }
 
 
+        private void UpdateShiftInDb(string Machine_ID)
+        {
+            try
+            {
+                var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
+                ProdDateAndShift currentShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
+
+                using (IDbConnection db = new SqlConnection(cs))
+                {
+                    string updateSql = @"
+                        UPDATE Prod_ShiftInformation 
+                        SET ProdDate = @ProdDate, 
+                            ShiftName = @ShiftName 
+                        WHERE StationID = (SELECT StationID FROM Config_Equipment WHERE EquipmentID = @EquipmentID)";
+
+                    int rows = db.Execute(updateSql, new
+                    {
+                        ProdDate = currentShift.ProdDate,
+                        ShiftName = currentShift.ShiftName,
+                        EquipmentID = Machine_ID
+                    });
+
+                    if (rows > 0)
+                    {
+                        logger.Info($"Updated Prod_ShiftInformation for Machine {Machine_ID}: {currentShift.ShiftName} / {currentShift.ProdDate:yyyy-MM-dd}");
+                    }
+                    else
+                    {
+                        logger.Warn($"No record found in Prod_ShiftInformation for Machine {Machine_ID} (Station mapping might be missing)");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to update shift info in DB for Machine {Machine_ID}: {ex.Message}");
+            }
+        }
     }
 }
