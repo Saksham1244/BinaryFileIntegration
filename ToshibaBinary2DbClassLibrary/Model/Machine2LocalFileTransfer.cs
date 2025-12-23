@@ -192,6 +192,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             await Task.Delay(tacTime * 1000);
                         }
                     });
+                    
+                    // Stagger machine startups by 5 seconds to avoid simultaneous polling
+                    await Task.Delay(5000);
                 }
             }
             catch (Exception ex)
