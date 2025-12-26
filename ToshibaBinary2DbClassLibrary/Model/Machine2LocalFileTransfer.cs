@@ -42,19 +42,30 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 XmlDocument doc = new XmlDocument();
                 doc.Load(MachConfigFilePath);
 
+                HashSet<string> processedMachineIds = new HashSet<string>();
 
+                int machineIndex = 0;
                 foreach (XmlNode node in doc.DocumentElement.ChildNodes)
                 {
+                    string Machine_ID = node.Attributes["Machine_ID"].Value;
+
+                    if (processedMachineIds.Contains(Machine_ID))
+                    {
+                        logger.Warn($"Duplicate configuration found for Machine {Machine_ID}. Skipping additional polling thread.");
+                        Console.WriteLine($"WARNING: Duplicate Machine_ID {Machine_ID} detected. Skipping.");
+                        continue;
+                    }
+                    processedMachineIds.Add(Machine_ID);
+
+                    int currentIndex = machineIndex; // Capture for closure
+                    machineIndex++;
+
                     Task.Run(async () =>
                     {
-                        string Machine_ID = node.Attributes["Machine_ID"].Value;
                         
-                        // Get TacTime from XML, default to 60 seconds if missing or invalid
+                        // Fixed polling interval of 60 seconds
                         int tacTime = 60;
-                        if (node.Attributes["TacTime"] != null)
-                        {
-                            int.TryParse(node.Attributes["TacTime"].Value, out tacTime);
-                        }
+
 
 
 
@@ -160,11 +171,13 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                                     await Task.Run(() =>
                                     {
-                                        ProcessData pd = new ProcessData();
-                                        pd.read_PDS_Files(Machine_ID, LocalFilePath, tacTime);
-
+                                        // Process MAC files first to ensure Total_Shots is updated for the Performance SP
                                         Machine_Data md = new Machine_Data();
                                         md.read_MAC_Files(Machine_ID, LocalFilePath);
+
+                                        // Process PDS files second. SP is triggered per-shot inside read_PDS_Files.
+                                        ProcessData pd = new ProcessData();
+                                        pd.read_PDS_Files(Machine_ID, LocalFilePath);
 
                                         Moulding_Data mld = new Moulding_Data();
                                         mld.read_Mold_Files(Machine_ID, LocalFilePath);
@@ -174,10 +187,6 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                                         MoldMachineValidation mmv = new MoldMachineValidation();
                                         mmv.read_MldMacVld_Files(Machine_ID, LocalFilePath);
-
-                                        // Run the stored proc to performance tables
-                                        Performance_CycleTime PC = new Performance_CycleTime();
-                                        PC.InsertPerformanceData();
                                     });
                                 }
 
@@ -188,13 +197,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 logger.Error($"Error processing machine {Machine_ID}: {ex.Message}");
                             }
 
-                            // Wait for TacTime before next poll
-                            await Task.Delay(tacTime * 1000);
+                            // Wait for TacTime before next poll removed for continuous execution
                         }
                     });
-                    
-                    // Stagger machine startups by 5 seconds to avoid simultaneous polling
-                    await Task.Delay(5000);
                 }
             }
             catch (Exception ex)

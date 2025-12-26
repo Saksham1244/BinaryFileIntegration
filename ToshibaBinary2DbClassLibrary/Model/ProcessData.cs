@@ -33,8 +33,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public void read_PDS_Files(string Machine_ID, string LocalFilePath, int tacTime)
+        public bool read_PDS_Files(string Machine_ID, string LocalFilePath)
         {
+            bool anyFileProcessed = false;
             try { 
                 var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
                 //var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
@@ -60,175 +61,171 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                     using (IDbConnection db = new SqlConnection(cs))
                     {
-                        foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.pds"))
-                        {
-
-                            //string fileName = "C:\\Users\\lenovo\\Downloads\\PDSData_20240207183749.pds";
-
-                            string InsertMachine_Process_DataTable = @"INSERT INTO [dbo].[Machine_Process_Data]
-                                        (
-			                                [Date_Time]
-                                           ,[Shot_Count]
-                                           ,[Cycle_Time]
-                                           ,[Injection_Time]
-                                           ,[Dosing_Time]
-                                           ,[Dosing_Stop]
-                                           ,[Melt_Cushion]
-                                           ,[Switch_Over_Position]
-                                           ,[Mold_Close_Time]
-                                           ,[Mold_Open_Time]
-                                           ,[Zone_3_Temperature]
-                                           ,[Nozzle_1_Temeprature]
-                                           ,[Feed_Temperature]
-                                           ,[Zone_1_Temeprature]
-                                           ,[Zone_2_Temeprature]
-                                           ,[Zone_4_Temeprature]
-                                           ,[Oil_Temperature]
-                                           ,[Melt_Temperature]
-                                           ,[Nozzle_2_Temperaturee]
-                                           ,[Switch_Over_Pressure]
-                                           ,[Tonnage]
-                                           ,[Mold_Open_Stop]
-                                           ,[Tonnage_Build_Time]
-                                           ,[Tonnage_Release_Time]
-                                           ,[Ejector_Forward_Time]
-                                           ,[Ejector_Back_Time]
-                                           ,[Minimum_Melt_Cushion]
-                                           ,[Injection_Start_Position]
-                                           ,[Peak_Injection_Pressure]
-                                           ,[Mold_Zone1_Temperature]
-                                           ,[Mold_Zone2_Temperature]
-                                           ,[MTC_Temperature]
-                                           ,[Machine_Id]
-                                           ,[ProdDate]
-                                           ,[ShiftName]
-                                           ,[Downtime]
-	                                    )
-                                         VALUES
-                                        (
-			                                @Date_Time
-			                                ,@Shot_Count
-			                                ,@Cycle_Time
-			                                ,@Injection_Time
-			                                ,@Dosing_Time
-			                                ,@Dosing_Stop
-			                                ,@Melt_Cushion
-			                                ,@Switch_Over_Position
-			                                ,@Mold_Close_Time
-			                                ,@Mold_Open_Time
-			                                ,@Zone_3_Temperature
-			                                ,@Nozzle_1_Temeprature
-			                                ,@Feed_Temperature
-			                                ,@Zone_1_Temeprature
-			                                ,@Zone_2_Temeprature
-			                                ,@Zone_4_Temeprature
-			                                ,@Oil_Temperature
-			                                ,@Melt_Temperature
-			                                ,@Nozzle_2_Temperaturee
-			                                ,@Switch_Over_Pressure
-			                                ,@Tonnage
-			                                ,@Mold_Open_Stop
-			                                ,@Tonnage_Build_Time
-			                                ,@Tonnage_Release_Time
-			                                ,@Ejector_Forward_Time
-			                                ,@Ejector_Back_Time
-			                                ,@Minimum_Melt_Cushion
-			                                ,@Injection_Start_Position
-			                                ,@Peak_Injection_Pressure
-			                                ,@Mold_Zone1_Temperature
-			                                ,@Mold_Zone2_Temperature
-			                                ,@MTC_Temperature
-                                            ,@Machine_Id
-                                            ,@ProdDate
-                                            ,@ShiftName
-                                            ,@Downtime
-	                                    )";
+                        string InsertMachine_Process_DataTable = @"INSERT INTO [dbo].[Machine_Process_Data]
+                                    (
+                                        [Date_Time]
+                                       ,[Shot_Count]
+                                       ,[Cycle_Time]
+                                       ,[Injection_Time]
+                                       ,[Dosing_Time]
+                                       ,[Dosing_Stop]
+                                       ,[Melt_Cushion]
+                                       ,[Switch_Over_Position]
+                                       ,[Mold_Close_Time]
+                                       ,[Mold_Open_Time]
+                                       ,[Zone_3_Temperature]
+                                       ,[Nozzle_1_Temeprature]
+                                       ,[Feed_Temperature]
+                                       ,[Zone_1_Temeprature]
+                                       ,[Zone_2_Temeprature]
+                                       ,[Zone_4_Temeprature]
+                                       ,[Oil_Temperature]
+                                       ,[Melt_Temperature]
+                                       ,[Nozzle_2_Temperaturee]
+                                       ,[Switch_Over_Pressure]
+                                       ,[Tonnage]
+                                       ,[Mold_Open_Stop]
+                                       ,[Tonnage_Build_Time]
+                                       ,[Tonnage_Release_Time]
+                                       ,[Ejector_Forward_Time]
+                                       ,[Ejector_Back_Time]
+                                       ,[Minimum_Melt_Cushion]
+                                       ,[Injection_Start_Position]
+                                       ,[Peak_Injection_Pressure]
+                                       ,[Mold_Zone1_Temperature]
+                                       ,[Mold_Zone2_Temperature]
+                                       ,[MTC_Temperature]
+                                       ,[Machine_Id]
+                                       ,[ProdDate]
+                                       ,[ShiftName]
+                                    )
+                                     VALUES
+                                    (
+                                        @Date_Time
+                                        ,@Shot_Count
+                                        ,@Cycle_Time
+                                        ,@Injection_Time
+                                        ,@Dosing_Time
+                                        ,@Dosing_Stop
+                                        ,@Melt_Cushion
+                                        ,@Switch_Over_Position
+                                        ,@Mold_Close_Time
+                                        ,@Mold_Open_Time
+                                        ,@Zone_3_Temperature
+                                        ,@Nozzle_1_Temeprature
+                                        ,@Feed_Temperature
+                                        ,@Zone_1_Temeprature
+                                        ,@Zone_2_Temeprature
+                                        ,@Zone_4_Temeprature
+                                        ,@Oil_Temperature
+                                        ,@Melt_Temperature
+                                        ,@Nozzle_2_Temperaturee
+                                        ,@Switch_Over_Pressure
+                                        ,@Tonnage
+                                        ,@Mold_Open_Stop
+                                        ,@Tonnage_Build_Time
+                                        ,@Tonnage_Release_Time
+                                        ,@Ejector_Forward_Time
+                                        ,@Ejector_Back_Time
+                                        ,@Minimum_Melt_Cushion
+                                        ,@Injection_Start_Position
+                                        ,@Peak_Injection_Pressure
+                                        ,@Mold_Zone1_Temperature
+                                        ,@Mold_Zone2_Temperature
+                                        ,@MTC_Temperature
+                                        ,@Machine_Id
+                                        ,@ProdDate
+                                        ,@ShiftName
+                                    )";
 
 
-                            string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
-                                                where StationID=(
-                                                select StationID from Config_Equipment where EquipmentID=@EquipmentID)";
-                            ProdDateAndShift prodDateAndShift = new ProdDateAndShift();
+                            var files = Directory.GetFiles(folderPath, "*.pds");
+                            logger.Info($"[ProcessData] Found {files.Length} .pds files in {folderPath} for Machine {Machine_ID}");
 
-                            logger.Info($"Querying ProdDate and ShiftName for Machine {Machine_ID}");
-                            try
+                            foreach (string fileName in files)
                             {
-                                prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
-                                logger.Info($"Successfully retrieved ProdDate: {prodDateAndShift.ProdDate}, Shift: {prodDateAndShift.ShiftName}");
-                            }
-                            catch (Exception queryEx)
-                            {
-                                logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID} in DB: {queryEx.Message}. Using local calculation.");
-                                prodDateAndShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
-                            }
+                                // 1. Read file FIRST to get machine timestamp and shot count
+                                read_PDS_File(fileName);
 
-                            read_PDS_File(fileName);
-
-                            // --- Calculate Downtime (T2 - T1 - TacTime) ---
-                            double downtime = 0;
-                            try
-                            {
-                                string getPreviousShotTime = "SELECT TOP 1 Date_Time FROM Machine_Process_Data WHERE Machine_Id = @Machine_Id ORDER BY Date_Time DESC";
-                                string lastShotTimeStr = db.QueryFirstOrDefault<string>(getPreviousShotTime, new { Machine_Id = Machine_ID });
-
-                                if (!string.IsNullOrEmpty(lastShotTimeStr))
-                                {
-                                    DateTime T2 = DateTime.ParseExact(MPD.Date_Time, "d-M-yyyy H-m-s", null);
-                                    DateTime T1 = DateTime.ParseExact(lastShotTimeStr, "d-M-yyyy H-m-s", null);
-
-                                    double gapSeconds = (T2 - T1).TotalSeconds;
-                                    downtime = gapSeconds - tacTime;
-                                    if (downtime < 1) downtime = 0;
-
-                                    logger.Info($"Downtime calculation for {Machine_ID}: T2({T2}) - T1({T1}) - TacTime({tacTime}) = {downtime}s");
-                                }
-                            }
-                            catch (Exception dtEx)
-                            {
-                                logger.Warn($"Could not calculate downtime for {Machine_ID}: {dtEx.Message}");
-                            }
-
-                            //SET Machine Id , Prod Date, Shift name and Downtime
-                            MPD.Machine_Id = Machine_ID;
-                            MPD.ProdDate = prodDateAndShift.ProdDate;
-                            MPD.ShiftName = prodDateAndShift.ShiftName;
-                            MPD.Downtime = downtime.ToString();
-
-                            // --- Duplicate Check ---
-                            string checkDuplicate = "SELECT COUNT(1) FROM [dbo].[Machine_Process_Data] WHERE [Machine_Id] = @Machine_Id AND [Date_Time] = @Date_Time AND [Shot_Count] = @Shot_Count";
-                            int existingCount = db.ExecuteScalar<int>(checkDuplicate, MPD);
-
-                            bool proceedToMove = false;
-                            if (existingCount == 0)
-                            {
-                                logger.Info($"Inserting process data for Machine {Machine_ID}, File: {Path.GetFileName(fileName)}");
-                                int rowsAffected = db.Execute(InsertMachine_Process_DataTable, MPD);
-                                logger.Info($"Rows affected: {rowsAffected}");
-                                if (rowsAffected > 0) proceedToMove = true;
-                            }
-                            else
-                            {
-                                logger.Warn($"Duplicate record detected for Machine {Machine_ID}, DateTime {MPD.Date_Time}, Shot {MPD.Shot_Count}. Skipping insertion.");
-                                proceedToMove = true; // Still move the file as it's already in the DB
-                            }
-
-                            if (proceedToMove)
-                            {
+                                // 2. Parse machine time to determine accurate ProdDate and ShiftName
+                                DateTime machineDateTime;
                                 try
                                 {
-                                    File.Delete(fileName);
-                                    logger.Info($"Successfully deleted processed file: {Path.GetFileName(fileName)}");
-                                    Console.WriteLine($"✓ Processed and deleted {Path.GetFileName(fileName)} for Machine {Machine_ID}");
+                                    // Format is d-M-yyyy H-m-s (e.g., 7-2-2025 11-8-27)
+                                    string[] parts = MPD.Date_Time.Split(' ');
+                                    string datePart = parts[0];
+                                    string timePart = parts[1].Replace('-', ':');
+                                    machineDateTime = DateTime.ParseExact($"{datePart} {timePart}", "d-M-yyyy H:m:s", System.Globalization.CultureInfo.InvariantCulture);
                                 }
-                                catch (Exception fileEx)
+                                catch (Exception ex)
                                 {
-                                    logger.Error($"Failed to delete file {fileName}: {fileEx.Message}");
+                                    logger.Error($"[ProcessData] Failed to parse machine time '{MPD.Date_Time}' for {fileName}: {ex.Message}. Falling back to now.");
+                                    machineDateTime = DateTime.Now;
                                 }
-                            }
-                            else
-                            {
-                                Console.WriteLine($"WARNING: Failed to process {Path.GetFileName(fileName)} for Machine {Machine_ID}");
-                            }
+
+                                // 3. Calculate Shift based on Machine Time (Historical accuracy)
+                                ProdDateAndShift prodInfo = ProdDateAndShift.GetShiftInfo(machineDateTime);
+                                
+                                MPD.Machine_Id = Machine_ID;
+                                MPD.ProdDate = prodInfo.ProdDate.Date;
+                                MPD.ShiftName = prodInfo.ShiftName;
+
+                                // --- Duplicate Check (Latest Only) ---
+                                // Use TRY_CAST to safely handle non-numeric data in the DB
+                                string checkLastShot = "SELECT TOP 1 TRY_CAST([Shot_Count] AS decimal(18,4)) FROM [dbo].[Machine_Process_Data] WHERE [Machine_Id] = @Machine_Id ORDER BY NID DESC";
+                                decimal? lastShot = db.ExecuteScalar<decimal?>(checkLastShot, new { Machine_Id = Machine_ID });
+                                
+                                bool isDuplicate = false;
+                                if (lastShot.HasValue)
+                                {
+                                    isDuplicate = (Math.Abs(lastShot.Value - decimal.Parse(MPD.Shot_Count)) < 0.0001m);
+                                }
+
+                                bool proceedToMove = false;
+                                if (!isDuplicate)
+                                {
+                                    logger.Info($"[ProcessData] Inserting NEW data for Machine '{Machine_ID}'. Shot: '{MPD.Shot_Count}', Shift Time: {machineDateTime:yyyy-MM-dd HH:mm:ss}");
+                                    int rowsAffected = db.Execute(InsertMachine_Process_DataTable, MPD);
+                                    if (rowsAffected > 0) 
+                                    {
+                                        proceedToMove = true;
+                                        anyFileProcessed = true;
+                                        Console.WriteLine($"[ProcessData] Inserted Shot {MPD.Shot_Count} for {Machine_ID}");
+
+                                        // Trigger Performance SP for this SPECIFIC NEW shot
+                                        try
+                                        {
+                                            Performance_CycleTime PC = new Performance_CycleTime();
+                                            PC.InsertPerformanceData(Machine_ID, MPD.Shot_Count);
+                                        }
+                                        catch (Exception spEx)
+                                        {
+                                            logger.Error($"[ProcessData] Failed to trigger Performance SP for Machine {Machine_ID}, Shot {MPD.Shot_Count}: {spEx.Message}");
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    logger.Warn($"[ProcessData] Duplicate Shot detected for Machine '{Machine_ID}'. Current File Shot: '{MPD.Shot_Count}', Database Latest: '{lastShot}'. Skipping.");
+                                    proceedToMove = true; // Already exists, cleanup file
+                                }
+
+                                if (proceedToMove)
+                                {
+                                    try
+                                    {
+                                        File.Delete(fileName);
+                                        logger.Info($"[ProcessData] Successfully deleted processed file: {Path.GetFileName(fileName)}");
+                                    }
+                                    catch (Exception fileEx)
+                                    {
+                                        logger.Error($"[ProcessData] Failed to delete file {fileName}: {fileEx.Message}");
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"WARNING: Failed to process {Path.GetFileName(fileName)} for Machine {Machine_ID}");
+                                }
                             //Console.WriteLine(rowsAffected);
 
                         }
@@ -254,7 +251,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             }
 
 
-
+            return anyFileProcessed;
 
 
         }
@@ -331,6 +328,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
     }
 
     
+#pragma warning disable CS0649
     struct TDatTim
     {
         public byte tm_sec;
@@ -348,6 +346,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
         public TDatTim DatTim;
         public float[] ElemNum;
     }
+#pragma warning restore CS0649
 
     
 
@@ -390,7 +389,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
         public string Machine_Id { get; set; }
         public DateTime ProdDate { get; set; }
         public string ShiftName { get; set; }
-        public string Downtime { get; set; }
+
 
 
     }

@@ -31,8 +31,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
         }
 
-        public void read_MAC_Files(string Machine_ID, string LocalFilePath)
+        public bool read_MAC_Files(string Machine_ID, string LocalFilePath)
         {
+            bool anyFileProcessed = false;
             try
             {
                 var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
@@ -60,7 +61,10 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                     using (IDbConnection db = new SqlConnection(cs))
                     {
-                        foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.mac"))
+                        var files = Directory.GetFiles(folderPath, "*.mac");
+                        logger.Info($"[Machine_Data] Found {files.Length} .mac files in {folderPath} for Machine {Machine_ID}");
+                        
+                        foreach (string fileName in files)
                         {
 
                             string InsertMachine_Mac_DataTable = @"INSERT INTO [dbo].[Machine_Data]
@@ -136,17 +140,37 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             read_MAC_File(fileName);
                             //SET Machine Id , Prod Date and Shift name 
                             MDD.Machine_Id = Machine_ID;
-                            MDD.ProdDate = prodDateAndShift.ProdDate;
+                            MDD.ProdDate = prodDateAndShift.ProdDate.Date; // Strip time component
                             MDD.ShiftName = prodDateAndShift.ShiftName;
 
-
-
-                            int rowsAffected = db.Execute(InsertMachine_Mac_DataTable, MDD);
-                            if (rowsAffected > 0)
+                            // --- Duplicate Check ---
+                            // Check only against the MOST RECENT record for this machine
+                            string checkLastShot = "SELECT TOP 1 TRY_CAST([Total_Shots] AS decimal(18,4)) FROM [dbo].[Machine_Data] WHERE [Machine_Id] = @Machine_Id ORDER BY NID DESC";
+                            decimal? lastShotCount = db.ExecuteScalar<decimal?>(checkLastShot, new { Machine_Id = Machine_ID });
+                            
+                            bool isDuplicate = false;
+                            if (lastShotCount.HasValue)
                             {
-                                File.Delete(fileName);
+                                isDuplicate = (Math.Abs(lastShotCount.Value - decimal.Parse(MDD.Total_Shots)) < 0.0001m);
                             }
-                            Console.WriteLine(rowsAffected);
+
+                            if (!isDuplicate)
+                            {
+                                logger.Info($"[Machine_Data] Inserting NEW data for Machine '{Machine_ID}'. Total_Shots: '{MDD.Total_Shots}', Mould: '{MDD.Mould_ID}'");
+                                int rowsAffected = db.Execute(InsertMachine_Mac_DataTable, MDD);
+                                if (rowsAffected > 0)
+                                {
+                                    anyFileProcessed = true;
+                                    logger.Info($"[Machine_Data] Successfully inserted record for Machine {Machine_ID} with Total_Shots {MDD.Total_Shots}");
+                                    File.Delete(fileName);
+                                }
+                                Console.WriteLine(rowsAffected);
+                            }
+                            else
+                            {
+                                logger.Warn($"[Machine_Data] Duplicate detected for Machine '{Machine_ID}'. Current File Total_Shots: '{MDD.Total_Shots}', Database Latest: '{lastShotCount}'. Skipping.");
+                                File.Delete(fileName); // Delete file as data already exists
+                            }
 
                         }
                     }
@@ -159,6 +183,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 
 
             }
+            return anyFileProcessed;
         }
 
         void read_MAC_File(string filename)

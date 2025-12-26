@@ -13,7 +13,7 @@ namespace TBin2DbConsole
              
 
           
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             Machine2LocalFileTransfer mac2LocFilTrans = new ToshibaBinary2DbClassLibrary.Model.Machine2LocalFileTransfer();
 

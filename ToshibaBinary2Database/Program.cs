@@ -11,12 +11,14 @@ using ToshibaBinary2DbClassLibrary.Model;
 namespace ToshibaBinary2Database
 {
 
+#pragma warning disable CS0649
     struct tAlaInfo
     {
         public uint AlaNum;
         public uint AlaOnDateTime;
         public uint AlaOffDateTime;
     }
+#pragma warning restore CS0649
     internal class Program
     {
 

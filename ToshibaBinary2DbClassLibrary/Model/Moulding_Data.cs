@@ -205,15 +205,19 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                             //SET Machine Id , Prod Date and Shift name 
                             MMD.Machine_Id = Machine_ID;
-                            MMD.ProdDate = prodDateAndShift.ProdDate;
+                            MMD.ProdDate = prodDateAndShift.ProdDate.Date; // Strip time component
                             MMD.ShiftName = prodDateAndShift.ShiftName;
 
+                            // --- No Duplicate Check ---
+                            // Always insert the provided moulding data
+                            logger.Info($"Inserting Moulding_Data for Machine '{Machine_ID}'");
                             int rowsAffected = db.Execute(InsertMachine_Mold_DataTable, MMD);
                             if (rowsAffected > 0)
                             {
                                 Directory.CreateDirectory(readFolderPath);
                                 string readFileName = fileName.Replace($"\\molding_para", $"\\molding_para\\read");
                                 //moving file
+                                if(File.Exists(readFileName)) File.Delete(readFileName); // Ensure target doesn't exist
                                 File.Move(fileName, readFileName);
                             }
                             Console.WriteLine(rowsAffected);

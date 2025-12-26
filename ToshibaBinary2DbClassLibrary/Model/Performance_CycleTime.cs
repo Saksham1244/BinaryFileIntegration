@@ -26,38 +26,23 @@ namespace ToshibaBinary2DbClassLibrary.Model
             CFG = ConfigurationManager.OpenExeConfiguration(assemblyPath);
         }
 
-        public void InsertPerformanceData()
+        public void InsertPerformanceData(string Machine_ID, string shotCount)
         {
             var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
-            var LocalFilePath = CFG.AppSettings.Settings["LocalFilePath"].Value;
-            var MachConfigFilePath = CFG.AppSettings.Settings["MachConfigFilePath"].Value;
+            
+            string Perf_CycleTime_Insert = "Perf_CycleTime_Insert";
 
-            //open the XML File having the Machine configuration
-            XmlDocument doc = new XmlDocument();
-            doc.Load(MachConfigFilePath);
-
-            foreach (XmlNode node in doc.DocumentElement.ChildNodes)
+            using (IDbConnection db = new SqlConnection(cs))
             {
-
-                string ftpAddress = node.Attributes["Machine_IP"].Value;
-                string filePathOnFtp = node.Attributes["Machine_Ftp_Path"].Value;
-                string username = node.Attributes["Machine_Ftp_ID"].Value;
-                string password = node.Attributes["Machine_Ftp_Pwd"].Value;
-
-                string Machine_ID = node.Attributes["Machine_ID"].Value;
-
-                
-
-                    string Perf_CycleTime_Insert = "Perf_CycleTime_Insert";
-
-                    using (IDbConnection db = new SqlConnection(cs))
-                    {
-
-                        int rowsAffected = db.Execute(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID }, commandType: CommandType.StoredProcedure);
-                    }
-                
+                try
+                {
+                    int rowsAffected = db.Execute(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID, ShotCount = shotCount }, commandType: CommandType.StoredProcedure);
+                }
+                catch (Exception ex)
+                {
+                   logger.Error($"Error executing Perf_CycleTime_Insert for {Machine_ID} (Shot: {shotCount}): {ex.Message}");
+                }
             }
-
         }
 
     }
