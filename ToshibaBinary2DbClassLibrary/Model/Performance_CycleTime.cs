@@ -36,7 +36,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             {
                 try
                 {
-                    int rowsAffected = db.Execute(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID, ShotCount = shotCount }, commandType: CommandType.StoredProcedure);
+                    int rowsAffected = db.Execute(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID }, commandType: CommandType.StoredProcedure);
                 }
                 catch (Exception ex)
                 {

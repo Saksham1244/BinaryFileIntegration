@@ -70,6 +70,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
 
                         logger.Info($"Starting polling for Machine {Machine_ID} with TacTime: {tacTime}s.");
+                        
+                        string lastShiftName = "";
+                        DateTime lastProdDate = DateTime.MinValue;
 
                         while (true)
                         {
@@ -77,8 +80,14 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             {
                                 Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Starting processing for Machine: {Machine_ID}");
 
-                                // Sync current shift info to database
-                                UpdateShiftInDb(Machine_ID);
+                                // Sync current shift info to database ONLY if it changed
+                                ProdDateAndShift currentShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
+                                if (currentShift.ShiftName != lastShiftName || currentShift.ProdDate != lastProdDate)
+                                {
+                                    UpdateShiftInDb(Machine_ID); 
+                                    lastShiftName = currentShift.ShiftName;
+                                    lastProdDate = currentShift.ProdDate;
+                                }
 
                                 string ftpAddress = node.Attributes["Machine_IP"].Value;
 
@@ -197,7 +206,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 logger.Error($"Error processing machine {Machine_ID}: {ex.Message}");
                             }
 
-                            // Wait for TacTime before next poll removed for continuous execution
+                            // Wait for TacTime before next poll
+                                await Task.Delay(TimeSpan.FromSeconds(tacTime));
                         }
                     });
                 }
