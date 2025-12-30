@@ -1,0 +1,91 @@
+MSBuild version 17.14.23+b0019275e for .NET Framework
+Build started 12/29/2025 5:49:07 PM.
+
+Project "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Db.sln" on node 1 (Build target(s)).
+ValidateSolutionConfiguration:
+  Building solution configuration "Release|Any CPU".
+Project "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Db.sln" (1) is building "d:\latestBinary\BinaryFileIntegration\TBin2DbConsole\ToshibaMachines2Local.csproj" (2) on node 1 (default targets).
+Project "d:\latestBinary\BinaryFileIntegration\TBin2DbConsole\ToshibaMachines2Local.csproj" (2) is building "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2DbClassLibrary\ToshibaBinary2DbClassLibrary.csproj" (3:2) on node 1 (default targets).
+NLogSchema_Copy:
+  NLog.Schema copy 'd:\latestBinary\BinaryFileIntegration\packages\NLog.Schema.6.0.5\build\/../content/NLog.xsd' file to project folder 'd:\latestBinary\BinaryFileIntegration\ToshibaBinary2DbClassLibrary\'
+GenerateTargetFrameworkMonikerAttribute:
+Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+CoreCompile:
+Skipping target "CoreCompile" because all output files are up-to-date with respect to the input files.
+_CopyOutOfDateSourceItemsToOutputDirectory:
+Skipping target "_CopyOutOfDateSourceItemsToOutputDirectory" because all output files are up-to-date with respect to the input files.
+_CopyAppConfigFile:
+Skipping target "_CopyAppConfigFile" because all output files are up-to-date with respect to the input files.
+CopyFilesToOutputDirectory:
+  ToshibaBinary2DbClassLibrary -> d:\latestBinary\BinaryFileIntegration\ToshibaBinary2DbClassLibrary\bin\Release\ToshibaBinary2DbClassLibrary.dll
+Done Building Project "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2DbClassLibrary\ToshibaBinary2DbClassLibrary.csproj" (default targets).
+GenerateBindingRedirectsUpdateAppConfig:
+  Copying file from "d:\latestBinary\BinaryFileIntegration\TBin2DbConsole\App.config" to "d:\latestBinary\BinaryFileIntegration\TBin2DbConsole\obj\Release\TBin2DbConsole.exe.config".
+  Touching "obj\Release\TBin2DbConsole.exe.config".
+GenerateTargetFrameworkMonikerAttribute:
+Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+CoreCompile:
+Skipping target "CoreCompile" because all output files are up-to-date with respect to the input files.
+_CopyOutOfDateSourceItemsToOutputDirectory:
+Skipping target "_CopyOutOfDateSourceItemsToOutputDirectory" because all output files are up-to-date with respect to the input files.
+_CopyAppConfigFile:
+Skipping target "_CopyAppConfigFile" because all output files are up-to-date with respect to the input files.
+CopyFilesToOutputDirectory:
+  ToshibaMachines2Local -> d:\latestBinary\BinaryFileIntegration\TBin2DbConsole\bin\Release\TBin2DbConsole.exe
+Done Building Project "d:\latestBinary\BinaryFileIntegration\TBin2DbConsole\ToshibaMachines2Local.csproj" (default targets).
+Project "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Db.sln" (1) is building "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj" (4) on node 1 (default targets).
+GenerateBindingRedirectsUpdateAppConfig:
+  Copying file from "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Database\App.config" to "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Database\obj\Release\ToshibaBinary2Database.exe.config".
+  Touching "obj\Release\ToshibaBinary2Database.exe.config".
+GenerateTargetFrameworkMonikerAttribute:
+Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+CoreCompile:
+Skipping target "CoreCompile" because all output files are up-to-date with respect to the input files.
+_CopyOutOfDateSourceItemsToOutputDirectory:
+Skipping target "_CopyOutOfDateSourceItemsToOutputDirectory" because all output files are up-to-date with respect to the input files.
+_CopyAppConfigFile:
+Skipping target "_CopyAppConfigFile" because all output files are up-to-date with respect to the input files.
+CopyFilesToOutputDirectory:
+  ToshibaBinary2Database -> d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Database\bin\Release\ToshibaBinary2Database.exe
+Done Building Project "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Database\ToshibaBinary2Database.csproj" (default targets).
+Project "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Db.sln" (1) is building "d:\latestBinary\BinaryFileIntegration\ToshibaLocal2Machines\ToshibaLocal2Machines.csproj" (5) on node 1 (default targets).
+GenerateBindingRedirectsUpdateAppConfig:
+  Copying file from "d:\latestBinary\BinaryFileIntegration\ToshibaLocal2Machines\App.config" to "d:\latestBinary\BinaryFileIntegration\ToshibaLocal2Machines\obj\Release\ToshibaLocal2Machines.exe.config".
+  Touching "obj\Release\ToshibaLocal2Machines.exe.config".
+GenerateTargetFrameworkMonikerAttribute:
+Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+CoreCompile:
+Skipping target "CoreCompile" because all output files are up-to-date with respect to the input files.
+_CopyOutOfDateSourceItemsToOutputDirectory:
+Skipping target "_CopyOutOfDateSourceItemsToOutputDirectory" because all output files are up-to-date with respect to the input files.
+_CopyAppConfigFile:
+Skipping target "_CopyAppConfigFile" because all output files are up-to-date with respect to the input files.
+CopyFilesToOutputDirectory:
+  ToshibaLocal2Machines -> d:\latestBinary\BinaryFileIntegration\ToshibaLocal2Machines\bin\Release\ToshibaLocal2Machines.exe
+Done Building Project "d:\latestBinary\BinaryFileIntegration\ToshibaLocal2Machines\ToshibaLocal2Machines.csproj" (default targets).
+Project "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Db.sln" (1) is building "d:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\ToshibaMacine2Local2DbWinService.csproj" (6) on node 1 (default targets).
+GenerateBindingRedirectsUpdateAppConfig:
+  Copying file from "d:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\App.config" to "d:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\obj\Release\ToshibaMacine2Local2DbWinService.exe.config".
+  Touching "obj\Release\ToshibaMacine2Local2DbWinService.exe.config".
+NLogSchema_Copy:
+  NLog.Schema copy 'd:\latestBinary\BinaryFileIntegration\packages\NLog.Schema.6.0.5\build\/../content/NLog.xsd' file to project folder 'd:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\'
+CoreResGen:
+  No resources are out of date with respect to their source files. Skipping resource generation.
+GenerateTargetFrameworkMonikerAttribute:
+Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+CoreCompile:
+Skipping target "CoreCompile" because all output files are up-to-date with respect to the input files.
+_CopyOutOfDateSourceItemsToOutputDirectory:
+Skipping target "_CopyOutOfDateSourceItemsToOutputDirectory" because all output files are up-to-date with respect to the input files.
+_CopyAppConfigFile:
+Skipping target "_CopyAppConfigFile" because all output files are up-to-date with respect to the input files.
+CopyFilesToOutputDirectory:
+  ToshibaMacine2Local2DbWinService -> d:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\bin\Release\ToshibaMacine2Local2DbWinService.exe
+Done Building Project "d:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\ToshibaMacine2Local2DbWinService.csproj" (default targets).
+Done Building Project "d:\latestBinary\BinaryFileIntegration\ToshibaBinary2Db.sln" (Build target(s)).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:00.34

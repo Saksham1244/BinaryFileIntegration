@@ -85,32 +85,37 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 {
                     foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.alm"))
                     {
-                        string InsertMachine_Alarm = @"INSERT INTO [dbo].[Machine_Alarm_Data]
+                        string InsertMachine_Alarm = @"INSERT INTO [dbo].[Alarm_Data]
                                                     (
 		                                                   [Alarm_Number]
                                                            ,[Set_Date_Time]
                                                            ,[Reset_Date_Time]
-
+                                                           ,[Machine_Id]
+                                                           ,[Alarm_Status]
+                                                           ,[ProdDate]
+                                                           ,[ShiftName]
 		                                                   )
                                                      VALUES
                                                            (
 			                                                @Alarm_Number
                                                            ,@Set_Date_Time
                                                            ,@Reset_Date_Time
+                                                           ,@Machine_Id
+                                                           ,@Alarm_Status
+                                                           ,@ProdDate
+                                                           ,@ShiftName
 		                                              )";
-                        string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
-                                                where StationID=(
-                                                select StationID from Config_Equipment where EquipmentID=@EquipmentID)";
-                        ProdDateAndShift prodDateAndShift = new ProdDateAndShift();
+                        ALM.Clear();
 
+                        ProdDateAndShift prodDateAndShift;
                         try
                         {
-                            prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                            prodDateAndShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
                         }
                         catch (Exception queryEx)
                         {
-                            logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID} in DB: {queryEx.Message}. Using local calculation.");
-                            prodDateAndShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
+                            logger.Warn($"Error calculating Shift info: {queryEx.Message}. Using defaults.");
+                            prodDateAndShift = new ProdDateAndShift { ProdDate = DateTime.Now.Date, ShiftName = "A" };
                         }
 
                         read_Alarm_File(fileName);
@@ -122,11 +127,19 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             _Alarm_Data.ShiftName = prodDateAndShift.ShiftName;
                         }
                         
-
+                        logger.Info($"[Alarm_Data] Inserting {ALM.Count} alarms for Machine '{Machine_ID}'");
                         int rowsAffected = db.Execute(InsertMachine_Alarm, ALM);
                         if (rowsAffected > 0)
                         {
-                            File.Delete(fileName);
+                            try 
+                            { 
+                                File.Delete(fileName);
+                                logger.Info($"[Alarm_Data] Successfully processed and deleted: {fileName}");
+                            }
+                            catch (Exception delEx)
+                            {
+                                logger.Error($"[Alarm_Data] Database insert successful, but failed to delete file {fileName}: {delEx.Message}");
+                            }
                         }
                         Console.WriteLine($"Alarm has been updated into the db for Machine: {Machine_ID}. Rows updated: {rowsAffected}");
                     }
@@ -135,7 +148,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             }
             catch (Exception ex)
             {
-                 logger.Error(ex.Message);
+                 logger.Error($"Error in read_Alarm_Files for {Machine_ID}: {ex.Message}");
                     
             }
             
@@ -170,7 +183,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         string s_Reset_Date_Time= Reset_Date_Time.ToString("yyyy-MM-dd HH:mm:ss");
 
                         if (Reset_Date_Time > DateTime.Now)
-                            s_Reset_Date_Time = "ALARM IS STILL ACTIVE";
+                            s_Reset_Date_Time = "Active";
 
                         string alarmStatus = "Unknown Alarm";
                         if (alarmNames != null && Alarm_Number < alarmNames.Count)

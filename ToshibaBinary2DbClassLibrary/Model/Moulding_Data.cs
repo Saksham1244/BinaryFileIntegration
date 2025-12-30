@@ -186,19 +186,15 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                                            ,@ShiftName
                                                        )";
 
-                            string getProdDateShift = @"select ProdDate,ShiftName from Prod_ShiftInformation 
-                                                where StationID=(
-                                                select StationID from Config_Equipment where EquipmentID=@EquipmentID)";
-                            ProdDateAndShift prodDateAndShift = new ProdDateAndShift();
-
+                            ProdDateAndShift prodDateAndShift;
                             try
                             {
-                                prodDateAndShift = db.QueryFirst<ProdDateAndShift>(getProdDateShift, new { EquipmentID = Machine_ID });
+                                prodDateAndShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
                             }
                             catch (Exception queryEx)
                             {
-                                logger.Warn($"Could not find ProdDate/Shift for Machine {Machine_ID} in DB: {queryEx.Message}. Using local calculation.");
-                                prodDateAndShift = ProdDateAndShift.GetShiftInfo(DateTime.Now);
+                                logger.Warn($"Error calculating shift info locally: {queryEx.Message}");
+                                prodDateAndShift = new ProdDateAndShift { ProdDate = DateTime.Now.Date, ShiftName = "A" };
                             }
 
                             read_Mold_File(fileName);

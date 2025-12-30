@@ -37,6 +37,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 try
                 {
                     int rowsAffected = db.Execute(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID }, commandType: CommandType.StoredProcedure);
+                    logger.Info($"Successfully inserted {rowsAffected} rows for {Machine_ID} (Shot: {shotCount})");
                 }
                 catch (Exception ex)
                 {
