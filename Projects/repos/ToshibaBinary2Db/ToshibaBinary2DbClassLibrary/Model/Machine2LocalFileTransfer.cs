@@ -17,7 +17,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
     {
         private static Logger logger = LogManager.GetCurrentClassLogger();
         Configuration CFG;
-        public async void TransferBinaryFiles()
+        public async Task TransferBinaryFiles()
         {
             try
             {
