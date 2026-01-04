@@ -30,21 +30,24 @@ namespace ToshibaBinary2DbClassLibrary.Model
         {
             var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
             
-            string Perf_CycleTime_Insert = "Perf_CycleTime_Insert";
 
-            using (IDbConnection db = new SqlConnection(cs))
-            {
-                try
-                {
-                    int rowsAffected = db.Execute(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID }, commandType: CommandType.StoredProcedure);
-                    logger.Info($"Successfully inserted {rowsAffected} rows for {Machine_ID} (Shot: {shotCount})");
+                    string Perf_CycleTime_Insert = "Perf_CycleTime_Insert";
+
+                    using (IDbConnection db = new SqlConnection(cs))
+                    {
+                        try 
+                        {
+                            int rowsAffected = db.Execute(Perf_CycleTime_Insert, new { Machine_Id = Machine_ID }, commandType: CommandType.StoredProcedure);
+                            Console.WriteLine($"[Performance] Updated for {Machine_ID}. Rows: {rowsAffected}");
+                            logger.Info($"[Performance] Updated for {Machine_ID}. Rows: {rowsAffected}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Performance] Error for {Machine_ID}: {ex.Message}");
+                            logger.Error($"[Performance] Error for {Machine_ID}: {ex.Message}");
+                        }
+                    }
                 }
-                catch (Exception ex)
-                {
-                   logger.Error($"Error executing Perf_CycleTime_Insert for {Machine_ID} (Shot: {shotCount}): {ex.Message}");
-                }
-            }
-        }
 
     }
 }
