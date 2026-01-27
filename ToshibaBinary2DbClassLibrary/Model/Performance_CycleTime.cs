@@ -26,7 +26,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
             CFG = ConfigurationManager.OpenExeConfiguration(assemblyPath);
         }
 
-        public void InsertPerformanceData(string Machine_ID, string shotCount)
+        public void InsertPerformanceData(string Machine_ID)
         {
             var cs = CFG.AppSettings.Settings["ConnectionString"].Value;
             

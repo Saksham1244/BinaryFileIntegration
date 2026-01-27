@@ -151,11 +151,8 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 DateTime machineDateTime;
                                 try
                                 {
-                                    // Format is d-M-yyyy H-m-s (e.g., 7-2-2025 11-8-27)
-                                    string[] parts = MPD.Date_Time.Split(' ');
-                                    string datePart = parts[0];
-                                    string timePart = parts[1].Replace('-', ':');
-                                    machineDateTime = DateTime.ParseExact($"{datePart} {timePart}", "d-M-yyyy H:m:s", System.Globalization.CultureInfo.InvariantCulture);
+                                    // Use standard parsing since we now format it correctly in read_PDS_File
+                                    machineDateTime = DateTime.Parse(MPD.Date_Time);
                                 }
                                 catch (Exception ex)
                                 {
@@ -185,6 +182,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 if (!isDuplicate)
                                 {
                                     logger.Info($"[ProcessData] Inserting NEW data for Machine '{Machine_ID}'. Shot: '{MPD.Shot_Count}', Shift Time: {machineDateTime:yyyy-MM-dd HH:mm:ss}");
+                                    // Debug logging to identify the invalid value
+                                    logger.Info($"[ProcessData] Machine: {Machine_ID}, Date_Time (String): '{MPD.Date_Time}', ProdDate (DateTime): '{MPD.ProdDate:yyyy-MM-dd HH:mm:ss}', Shot: '{MPD.Shot_Count}'");
+                                    
                                     int rowsAffected = db.Execute(InsertMachine_Process_DataTable, MPD);
                                     if (rowsAffected > 0) 
                                     {
@@ -193,15 +193,15 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                         Console.WriteLine($"[ProcessData] Inserted Shot {MPD.Shot_Count} for {Machine_ID}");
 
                                         // Trigger Performance SP for this SPECIFIC NEW shot
-                                        try
-                                        {
-                                            Performance_CycleTime PC = new Performance_CycleTime();
-                                            PC.InsertPerformanceData(Machine_ID, MPD.Shot_Count);
-                                        }
-                                        catch (Exception spEx)
-                                        {
-                                            logger.Error($"[ProcessData] Failed to trigger Performance SP for Machine {Machine_ID}, Shot {MPD.Shot_Count}: {spEx.Message}");
-                                        }
+                                        //try
+                                        //{
+                                        //    Performance_CycleTime PC = new Performance_CycleTime();
+                                        //    PC.InsertPerformanceData(Machine_ID, MPD.Shot_Count);
+                                        //}
+                                        //catch (Exception spEx)
+                                        //{
+                                        //    logger.Error($"[ProcessData] Failed to trigger Performance SP for Machine {Machine_ID}, Shot {MPD.Shot_Count}: {spEx.Message}");
+                                        //}
                                     }
                                 }
                                 else
@@ -270,12 +270,19 @@ namespace ToshibaBinary2DbClassLibrary.Model
                     //PDSinfo.DatTim = reader.ReadStruct<TDatTim>();
                     //int temp = PDSinfo.DatTim.tm_year + 1900;
 
-                    int temp= DatTim.tm_year + 1900;
+                    int year= DatTim.tm_year + 1900;
+                    int month = DatTim.tm_mon + 1; 
 
-                    // mpd.Date_Time = $"{PDSinfo.DatTim.tm_mday}-{PDSinfo.DatTim.tm_mon}-{temp} {PDSinfo.DatTim.tm_hour}-{PDSinfo.DatTim.tm_min}-{PDSinfo.DatTim.tm_sec}";
-
-                    MPD.Date_Time = $"{DatTim.tm_mday}-{DatTim.tm_mon}-{temp} {DatTim.tm_hour}-{DatTim.tm_min}-{DatTim.tm_sec}";
-
+                    try 
+                    {
+                        DateTime dt = new DateTime(year, month, DatTim.tm_mday, DatTim.tm_hour, DatTim.tm_min, DatTim.tm_sec);
+                        // Use ISO8601 format (T separator) to be safe for SQL
+                        MPD.Date_Time = dt.ToString("yyyy-MM-ddTHH:mm:ss");
+                    }
+                    catch
+                    {
+                        MPD.Date_Time = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
+                    }
 
                     MPD.Shot_Count = reader.ReadSingle().ToString();
                     MPD.Cycle_Time = reader.ReadSingle().ToString();

@@ -196,6 +196,9 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                                         MoldMachineValidation mmv = new MoldMachineValidation();
                                         mmv.read_MldMacVld_Files(Machine_ID, LocalFilePath);
+
+                                        Performance_CycleTime PC = new Performance_CycleTime();
+                                        PC.InsertPerformanceData(Machine_ID);
                                     });
                                 }
 
