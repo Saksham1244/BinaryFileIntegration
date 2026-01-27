@@ -182,11 +182,11 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                     {
                                         // Process MAC files first to ensure Total_Shots is updated for the Performance SP
                                         Machine_Data md = new Machine_Data();
-                                        md.read_MAC_Files(Machine_ID, LocalFilePath);
+                                        bool macProcessed = md.read_MAC_Files(Machine_ID, LocalFilePath);
 
                                         // Process PDS files second. SP is triggered per-shot inside read_PDS_Files.
                                         ProcessData pd = new ProcessData();
-                                        pd.read_PDS_Files(Machine_ID, LocalFilePath);
+                                        bool pdsProcessed = pd.read_PDS_Files(Machine_ID, LocalFilePath);
 
                                         Moulding_Data mld = new Moulding_Data();
                                         mld.read_Mold_Files(Machine_ID, LocalFilePath);
@@ -197,8 +197,11 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                         MoldMachineValidation mmv = new MoldMachineValidation();
                                         mmv.read_MldMacVld_Files(Machine_ID, LocalFilePath);
 
-                                        Performance_CycleTime PC = new Performance_CycleTime();
-                                        PC.InsertPerformanceData(Machine_ID);
+                                        if (macProcessed || pdsProcessed)
+                                        {
+                                            Performance_CycleTime PC = new Performance_CycleTime();
+                                            PC.InsertPerformanceData(Machine_ID);
+                                        }
                                     });
                                 }
 
