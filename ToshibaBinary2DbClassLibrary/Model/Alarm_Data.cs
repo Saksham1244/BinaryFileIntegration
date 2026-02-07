@@ -85,27 +85,17 @@ namespace ToshibaBinary2DbClassLibrary.Model
                 {
                     foreach (string fileName in Directory.EnumerateFiles(folderPath, "*.alm"))
                     {
-                        string InsertMachine_Alarm = @"INSERT INTO [dbo].[Alarm_Data]
-                                                    (
-		                                                   [Alarm_Number]
-                                                           ,[Set_Date_Time]
-                                                           ,[Reset_Date_Time]
-                                                           ,[Machine_Id]
-                                                           ,[Alarm_Status]
-                                                           ,[ProdDate]
-                                                           ,[ShiftName]
-		                                                   )
-                                                     VALUES
-                                                           (
-			                                                @Alarm_Number
-                                                           ,@Set_Date_Time
-                                                           ,@Reset_Date_Time
-                                                           ,@Machine_Id
-                                                           ,@Alarm_Status
-                                                           ,@ProdDate
-                                                           ,@ShiftName
-		                                              )";
                         ALM.Clear();
+
+                        // 1. Read file into memory (ALM list)
+                        read_Alarm_File(fileName);
+
+                        if (ALM.Count == 0)
+                        {
+                            // If empty, just delete or skip? Better to delete if valid but empty.
+                            try { File.Delete(fileName); } catch { }
+                            continue;
+                        }
 
                         ProdDateAndShift prodDateAndShift;
                         try
@@ -118,30 +108,89 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             prodDateAndShift = new ProdDateAndShift { ProdDate = DateTime.Now.Date, ShiftName = "A" };
                         }
 
-                        read_Alarm_File(fileName);
-                        //SET Machine Id , Prod Date and Shift name 
-                        foreach(Machine_Alarm_Data _Alarm_Data in ALM)
+                        // 2. Set context info
+                        foreach (Machine_Alarm_Data _Alarm_Data in ALM)
                         {
                             _Alarm_Data.Machine_Id = Machine_ID;
                             _Alarm_Data.ProdDate = prodDateAndShift.ProdDate;
                             _Alarm_Data.ShiftName = prodDateAndShift.ShiftName;
                         }
-                        
-                        logger.Info($"[Alarm_Data] Inserting {ALM.Count} alarms for Machine '{Machine_ID}'");
-                        int rowsAffected = db.Execute(InsertMachine_Alarm, ALM);
-                        if (rowsAffected > 0)
+
+                        // 3. High-Watermark Check: Get latest Set_Date_Time from DB
+                        DateTime? latestDbTime = null;
+                        try
                         {
-                            try 
-                            { 
-                                File.Delete(fileName);
-                                logger.Info($"[Alarm_Data] Successfully processed and deleted: {fileName}");
-                            }
-                            catch (Exception delEx)
-                            {
-                                logger.Error($"[Alarm_Data] Database insert successful, but failed to delete file {fileName}: {delEx.Message}");
-                            }
+                            string maxQuery = "SELECT MAX(Set_Date_Time) FROM [dbo].[Alarm_Data] WHERE Machine_Id = @Machine_Id";
+                            // Note: Assuming Set_Date_Time in DB is DateTime or convertible. 
+                            // If it's string in DB, this might need casting, but Dapper usually handles it if column is DateTime.
+                            // If column is VARCHAR, we might need CAST/CONVERT in SQL. 
+                            // Safest is to try fetching.
+                             var result = db.ExecuteScalar(maxQuery, new { Machine_Id = Machine_ID });
+                             if(result != null && result != DBNull.Value)
+                             {
+                                 latestDbTime = Convert.ToDateTime(result);
+                             }
                         }
-                        Console.WriteLine($"Alarm has been updated into the db for Machine: {Machine_ID}. Rows updated: {rowsAffected}");
+                        catch (Exception ex)
+                        {
+                            logger.Error($"Failed to fetch max alarm time for {Machine_ID}: {ex.Message}");
+                        }
+
+                        int totalInFile = ALM.Count;
+
+                        // 4. Filter duplicates
+                        if (latestDbTime.HasValue)
+                        {
+                            // Remove alarms that are older or equal to the latest one in DB
+                            ALM.RemoveAll(x => DateTime.Parse(x.Set_Date_Time) <= latestDbTime.Value);
+                        }
+
+                        int newRecords = ALM.Count;
+                        int rowsAffected = 0;
+
+                        if (newRecords > 0)
+                        {
+                            string InsertMachine_Alarm = @"INSERT INTO [dbo].[Alarm_Data]
+                                                        (
+		                                                       [Alarm_Number]
+                                                               ,[Set_Date_Time]
+                                                               ,[Reset_Date_Time]
+                                                               ,[Machine_Id]
+                                                               ,[Alarm_Status]
+                                                               ,[ProdDate]
+                                                               ,[ShiftName]
+		                                                       )
+                                                         VALUES
+                                                               (
+			                                                    @Alarm_Number
+                                                               ,@Set_Date_Time
+                                                               ,@Reset_Date_Time
+                                                               ,@Machine_Id
+                                                               ,@Alarm_Status
+                                                               ,@ProdDate
+                                                               ,@ShiftName
+		                                                  )";
+
+                            logger.Info($"[Alarm_Data] Inserting {newRecords} NEW alarms for Machine '{Machine_ID}' (Filtered {totalInFile - newRecords} duplicates)");
+                            rowsAffected = db.Execute(InsertMachine_Alarm, ALM);
+                        }
+                        else
+                        {
+                            logger.Info($"[Alarm_Data] No new alarms for Machine '{Machine_ID}'. All {totalInFile} records were duplicates.");
+                        }
+                        
+                        // Always delete file if processed (even if 0 new records, because we successfully determined we have them all)
+                        try
+                        {
+                            File.Delete(fileName);
+                            logger.Info($"[Alarm_Data] Successfully processed and deleted: {fileName}");
+                        }
+                        catch (Exception delEx)
+                        {
+                            logger.Error($"[Alarm_Data] Processing done, but failed to delete file {fileName}: {delEx.Message}");
+                        }
+
+                        Console.WriteLine($"Alarm processing for {Machine_ID}: {newRecords} inserted out of {totalInFile}.");
                     }
                 }
                 //}
