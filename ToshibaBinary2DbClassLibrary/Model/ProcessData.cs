@@ -98,6 +98,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                        ,[Machine_Id]
                                        ,[ProdDate]
                                        ,[ShiftName]
+                                       ,[TimeStamp]
                                     )
                                      VALUES
                                     (
@@ -136,6 +137,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                         ,@Machine_Id
                                         ,@ProdDate
                                         ,@ShiftName
+                                        ,@TimeStamp
                                     )";
 
 
@@ -166,6 +168,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                                 MPD.Machine_Id = Machine_ID;
                                 MPD.ProdDate = prodInfo.ProdDate.Date;
                                 MPD.ShiftName = prodInfo.ShiftName;
+                                MPD.TimeStamp = DateTime.Now;
 
                                 // --- Duplicate Check (Latest Only) ---
                                 // Use TRY_CAST to safely handle non-numeric data in the DB
@@ -396,6 +399,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
         public string Machine_Id { get; set; }
         public DateTime ProdDate { get; set; }
         public string ShiftName { get; set; }
+        public DateTime TimeStamp { get; set; }
 
 
 
