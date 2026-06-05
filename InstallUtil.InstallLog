@@ -22,3 +22,10 @@ The file is located at d:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local
 The Rollback phase completed successfully.
 
 The transacted install has completed.
+
+
+The uninstall is beginning.
+See the contents of the log file for the D:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\bin\Debug\ToshibaMacine2Local2DbWinService.exe assembly's progress.
+The file is located at D:\latestBinary\BinaryFileIntegration\ToshibaMacine2Local2DbWinService\bin\Debug\ToshibaMacine2Local2DbWinService.InstallLog.
+
+The uninstall has completed.
