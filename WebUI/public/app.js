@@ -107,10 +107,10 @@ async function fetchStatus() {
 function updateDashboardHeader(data) {
     if (data.dbConnected) {
         dbStatus.className = 'status-indicator db-status connected';
-        dbStatus.querySelector('.status-label').textContent = 'Database Connection: OK';
+        dbStatus.querySelector('.status-label').textContent = 'DB: OK';
     } else {
         dbStatus.className = 'status-indicator db-status';
-        dbStatus.querySelector('.status-label').textContent = 'Database Connection: OFFLINE';
+        dbStatus.querySelector('.status-label').textContent = 'DB: OFFLINE';
     }
     
     const now = new Date();
