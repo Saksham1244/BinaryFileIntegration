@@ -299,9 +299,17 @@ function renderGrid() {
 
 // DOM Elements for Navigation Tabs
 const navDashboardBtn = document.getElementById('navDashboardBtn');
+const navAlarmsBtn = document.getElementById('navAlarmsBtn');
 const navParametersBtn = document.getElementById('navParametersBtn');
 const dashboardView = document.getElementById('dashboardView');
+const alarmsView = document.getElementById('alarmsView');
 const parametersView = document.getElementById('parametersView');
+
+// Alarm View states
+let selectedAlarmMachineId = 'LIL1600ML-011'; // Default: L&T 180T
+let selectedAlarmRange = 'Week'; // Default: Week
+let alarmDurationChart = null;
+let alarmOccurrenceChart = null;
 
 // Parameter View selectors
 const paramDate = document.getElementById('paramDate');
@@ -888,20 +896,29 @@ function exportToCSV() {
 
 // View switcher
 function switchTab(viewName) {
+    navDashboardBtn.classList.remove('active');
+    navAlarmsBtn.classList.remove('active');
+    navParametersBtn.classList.remove('active');
+    
+    dashboardView.style.display = 'none';
+    alarmsView.style.display = 'none';
+    parametersView.style.display = 'none';
+    
+    clearInterval(countdownInterval);
+    
     if (viewName === 'dashboard') {
         navDashboardBtn.classList.add('active');
-        navParametersBtn.classList.remove('active');
-        dashboardView.classList.add('active');
-        parametersView.classList.remove('active');
-        startAutoRefresh(); // Resume auto update on dashboard
-    } else {
-        navDashboardBtn.classList.remove('active');
+        dashboardView.style.display = 'block';
+        startAutoRefresh();
+    } else if (viewName === 'alarms') {
+        navAlarmsBtn.classList.add('active');
+        alarmsView.style.display = 'block';
+        renderAlarmMachineButtons();
+        loadAlarmsAnalytics();
+    } else if (viewName === 'parameters') {
         navParametersBtn.classList.add('active');
-        dashboardView.classList.remove('active');
-        parametersView.classList.add('active');
-        clearInterval(countdownInterval); // Pause dashboard auto update
+        parametersView.style.display = 'block';
         
-        // Initialize Parameter view defaults
         if (!paramDate.value) {
             const today = new Date().toISOString().split('T')[0];
             paramDate.value = today;
@@ -1001,6 +1018,7 @@ function setupParametersListeners() {
     
     // Tab buttons
     navDashboardBtn.addEventListener('click', () => switchTab('dashboard'));
+    navAlarmsBtn.addEventListener('click', () => switchTab('alarms'));
     navParametersBtn.addEventListener('click', () => switchTab('parameters'));
 }
 
@@ -1102,5 +1120,195 @@ btnThemeToggle.addEventListener('click', () => {
             chart.update();
         }
     });
+    
+    // Update alarm charts if they exist
+    [alarmDurationChart, alarmOccurrenceChart].forEach(chart => {
+        if (chart) {
+            chart.options.scales.x.grid.color = gridColor;
+            chart.options.scales.x.ticks.color = tickColor;
+            chart.options.scales.y.ticks.color = tickColor;
+            chart.update();
+        }
+    });
 });
+
+// Alarm Analytics Helpers
+function renderAlarmMachineButtons() {
+    const grid = document.getElementById('alarmMachinesGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    machinesData.forEach(m => {
+        const btn = document.createElement('button');
+        btn.className = `btn-alarm-machine ${selectedAlarmMachineId === m.id ? 'selected' : ''}`;
+        
+        let name = machineNamesMap[m.id] || m.id;
+        if (name === 'L&T 180T') {
+            name = 'L&T 180T (Shibaura)';
+        }
+        
+        btn.textContent = name;
+        btn.addEventListener('click', () => {
+            selectedAlarmMachineId = m.id;
+            document.querySelectorAll('.btn-alarm-machine').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            loadAlarmsAnalytics();
+        });
+        grid.appendChild(btn);
+    });
+}
+
+async function loadAlarmsAnalytics() {
+    const params = new URLSearchParams();
+    if (selectedAlarmMachineId) {
+        params.append('machineId', selectedAlarmMachineId);
+    }
+    if (selectedAlarmRange) {
+        params.append('range', selectedAlarmRange);
+    } else {
+        const start = document.getElementById('alarmStartDate').value;
+        const end = document.getElementById('alarmEndDate').value;
+        if (start && end) {
+            params.append('startDate', start);
+            params.append('endDate', end);
+        }
+    }
+    
+    try {
+        const res = await fetch(`/api/alarms/analytics?${params}`);
+        const data = await res.json();
+        
+        if (data.success) {
+            renderAlarmDurationChart(data.topDuration);
+            renderAlarmOccurrenceChart(data.topOccurrence);
+        } else {
+            console.error('Failed to load alarms analytics:', data.error);
+        }
+    } catch (err) {
+        console.error('Alarms analytics fetch failed:', err);
+    }
+}
+
+function renderAlarmDurationChart(dataList) {
+    if (alarmDurationChart) {
+        alarmDurationChart.destroy();
+    }
+    
+    const ctx = document.getElementById('chartAlarmDuration').getContext('2d');
+    const labels = dataList.map(d => d.alarm);
+    const values = dataList.map(d => d.value);
+    
+    const isLight = document.body.classList.contains('light-theme');
+    const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+    const tickColor = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+    
+    alarmDurationChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Duration (Mins)',
+                data: values,
+                backgroundColor: 'rgba(239, 68, 68, 0.75)',
+                borderColor: '#ef4444',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor, font: { family: 'Outfit', size: 10 } }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { color: tickColor, font: { family: 'Outfit', size: 11, weight: '500' } }
+                }
+            }
+        }
+    });
+}
+
+function renderAlarmOccurrenceChart(dataList) {
+    if (alarmOccurrenceChart) {
+        alarmOccurrenceChart.destroy();
+    }
+    
+    const ctx = document.getElementById('chartAlarmOccurrence').getContext('2d');
+    const labels = dataList.map(d => d.alarm);
+    const values = dataList.map(d => d.value);
+    
+    const isLight = document.body.classList.contains('light-theme');
+    const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+    const tickColor = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+    
+    alarmOccurrenceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Occurrences',
+                data: values,
+                backgroundColor: 'rgba(59, 130, 246, 0.75)',
+                borderColor: '#3b82f6',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor, font: { family: 'Outfit', size: 10 } }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { color: tickColor, font: { family: 'Outfit', size: 11, weight: '500' } }
+                }
+            }
+        }
+    });
+}
+
+function setupAlarmsListeners() {
+    document.querySelectorAll('.btn-time-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.btn-time-filter').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedAlarmRange = btn.dataset.range;
+            
+            document.getElementById('alarmStartDate').value = '';
+            document.getElementById('alarmEndDate').value = '';
+            
+            loadAlarmsAnalytics();
+        });
+    });
+    
+    document.getElementById('alarmStartDate').addEventListener('change', () => {
+        document.querySelectorAll('.btn-time-filter').forEach(b => b.classList.remove('active'));
+        selectedAlarmRange = '';
+        loadAlarmsAnalytics();
+    });
+    document.getElementById('alarmEndDate').addEventListener('change', () => {
+        document.querySelectorAll('.btn-time-filter').forEach(b => b.classList.remove('active'));
+        selectedAlarmRange = '';
+        loadAlarmsAnalytics();
+    });
+}
+
+// Register all listeners
+setupAlarmsListeners();
 

@@ -247,6 +247,80 @@ const processFields = [
     'MTC_Temperature', 'DownTime'
 ];
 
+app.get('/api/alarms/analytics', async (req, res) => {
+    try {
+        const { machineId, range, startDate, endDate } = req.query;
+        const pool = await getDbPool();
+        if (!pool) {
+            return res.status(500).json({ success: false, error: 'Database connection failed.' });
+        }
+        
+        let queryStr = `
+            SELECT 
+                Alarm_Number,
+                COUNT(*) as Occurrence,
+                SUM(DATEDIFF(second, Set_Date_Time, ISNULL(Reset_Date_Time, GETDATE()))) as Duration
+            FROM dbo.Machine_Alarm_Data
+            WHERE Set_Date_Time IS NOT NULL
+        `;
+        
+        const request = pool.request();
+        
+        if (machineId) {
+            queryStr += ` AND Machine_Id = @machineId`;
+            request.input('machineId', sql.VarChar, machineId);
+        }
+        
+        if (startDate && endDate) {
+            queryStr += ` AND Set_Date_Time BETWEEN @startDate AND @endDate`;
+            request.input('startDate', sql.DateTime, new Date(startDate));
+            request.input('endDate', sql.DateTime, new Date(endDate));
+        } else if (range) {
+            if (range === 'Day') {
+                queryStr += ` AND Set_Date_Time >= DATEADD(day, -1, GETDATE())`;
+            } else if (range === 'Week') {
+                queryStr += ` AND Set_Date_Time >= DATEADD(week, -1, GETDATE())`;
+            } else if (range === 'Month') {
+                queryStr += ` AND Set_Date_Time >= DATEADD(month, -1, GETDATE())`;
+            } else if (range === 'Shift') {
+                queryStr += ` AND Set_Date_Time >= DATEADD(hour, -8, GETDATE())`;
+            }
+        }
+        
+        queryStr += ` GROUP BY Alarm_Number`;
+        
+        const result = await request.query(queryStr);
+        const records = result.recordset || [];
+        
+        // Sort and slice top 5 by Duration (Minutes)
+        const topDuration = [...records]
+            .sort((a, b) => b.Duration - a.Duration)
+            .slice(0, 5)
+            .map(r => ({
+                alarm: `Alarm ${r.Alarm_Number}`,
+                value: parseFloat((r.Duration / 60).toFixed(1))
+            }));
+            
+        // Sort and slice top 5 by Occurrence
+        const topOccurrence = [...records]
+            .sort((a, b) => b.Occurrence - a.Occurrence)
+            .slice(0, 5)
+            .map(r => ({
+                alarm: `Alarm ${r.Alarm_Number}`,
+                value: r.Occurrence
+            }));
+            
+        res.json({
+            success: true,
+            topDuration,
+            topOccurrence
+        });
+    } catch (err) {
+        console.error('Alarms analytics query error:', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 app.get('/api/parameters', async (req, res) => {
     const { machineId, date, shift, startTime, endTime, fields } = req.query;
 

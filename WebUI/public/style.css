@@ -1247,3 +1247,69 @@ body {
     width: 100%;
 }
 
+/* Alarm Analytics Layout */
+.alarms-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 1.5rem;
+}
+
+.btn-time-filter {
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-time-filter:hover {
+    background: #2563eb;
+}
+
+.btn-time-filter.active {
+    background: #1e3a8a !important;
+}
+
+.alarm-date-input {
+    background: rgba(127, 127, 127, 0.05);
+    border: 1px solid rgba(127, 127, 127, 0.2);
+    color: var(--text-primary);
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    outline: none;
+    font-family: inherit;
+}
+
+.alarm-machines-btn-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.btn-alarm-machine {
+    background: #6366f1;
+    color: #ffffff;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-alarm-machine:hover {
+    background: #4f46e5;
+}
+
+.btn-alarm-machine.selected {
+    background: #e11d48 !important;
+    box-shadow: 0 0 10px rgba(225, 29, 72, 0.3);
+}
+

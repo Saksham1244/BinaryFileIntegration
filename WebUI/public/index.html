@@ -32,6 +32,9 @@
                 <button class="nav-btn active" id="navDashboardBtn">
                     <i class="fa-solid fa-gauge-high"></i> Dashboard
                 </button>
+                <button class="nav-btn" id="navAlarmsBtn">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Alarm Analytics
+                </button>
                 <button class="nav-btn" id="navParametersBtn">
                     <i class="fa-solid fa-chart-line"></i> Parameter Trends
                 </button>
@@ -119,6 +122,54 @@
                     <div class="shimmer-card"></div>
                     <div class="shimmer-card"></div>
                 </section>
+            </div>
+
+            <!-- View 3: Alarm Analytics -->
+            <div id="alarmsView" class="view-panel" style="display: none;">
+                <!-- Filter Bar -->
+                <div class="glass-panel alarms-filter-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; margin-bottom: 1.5rem; border-radius: 12px;">
+                    <div class="quick-time-filters" style="display: flex; gap: 0.5rem;">
+                        <button class="btn-time-filter" data-range="Shift">Shift</button>
+                        <button class="btn-time-filter" data-range="Day">Day</button>
+                        <button class="btn-time-filter active" data-range="Week">Week</button>
+                        <button class="btn-time-filter" data-range="Month">Month</button>
+                    </div>
+                    <div class="date-range-filter" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);">Select Date Range:</span>
+                        <input type="date" id="alarmStartDate" class="alarm-date-input">
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">to</span>
+                        <input type="date" id="alarmEndDate" class="alarm-date-input">
+                    </div>
+                </div>
+
+                <!-- Plant Alarms Banner -->
+                <div class="category-header-bar" style="background: #1e3a8a; color: white; padding: 0.75rem 1rem; border-radius: 6px; text-align: center; font-weight: bold; margin-bottom: 1.5rem; font-size: 1.1rem; letter-spacing: 0.05em;">
+                    Plant Alarms
+                </div>
+
+                <!-- Charts Layout -->
+                <div class="alarms-charts-grid">
+                    <div class="glass-panel" style="padding: 1.5rem; border-radius: 12px; background: var(--bg-panel); border: 1px solid var(--border-glass);">
+                        <h4 style="text-align: center; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Top Five Alarms by Duration (Minutes)</h4>
+                        <div style="position: relative; height: 350px; width: 100%;">
+                            <canvas id="chartAlarmDuration"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-panel" style="padding: 1.5rem; border-radius: 12px; background: var(--bg-panel); border: 1px solid var(--border-glass);">
+                        <h4 style="text-align: center; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Top Five Alarms by Occurrence (Counts)</h4>
+                        <div style="position: relative; height: 350px; width: 100%;">
+                            <canvas id="chartAlarmOccurrence"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Machine Selection Grid at the Bottom -->
+                <div class="glass-panel" style="padding: 1.5rem; border-radius: 12px; margin-top: 1.5rem; background: var(--bg-panel); border: 1px solid var(--border-glass);">
+                    <h4 style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; text-align: center;">Select Machine to Filter</h4>
+                    <div class="alarm-machines-btn-grid" id="alarmMachinesGrid">
+                        <!-- Dynamically filled buttons -->
+                    </div>
+                </div>
             </div>
 
             <!-- View 2: Parameter Trends & Analytics -->
