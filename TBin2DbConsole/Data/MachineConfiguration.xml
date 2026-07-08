@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Machines>
 		<MachineDetails Machine_ID="LIL1600ML-054" Machine_IP="192.168.14.71" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="75" />
     	<MachineDetails Machine_ID="LIL1600ML-079" Machine_IP="192.168.14.72" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
@@ -11,7 +11,7 @@
     	<MachineDetails Machine_ID="LIL1600ML-004" Machine_IP="192.168.14.87" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
     	<MachineDetails Machine_ID="LIL1600ML-039" Machine_IP="192.168.14.88" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
     	<MachineDetails Machine_ID="LIL1600ML-002" Machine_IP="192.168.14.89" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />    
-    	<MachineDetails Machine_ID="LIL1600ML-076" Machine_IP="192.168.14.77" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
+    	<MachineDetails Machine_ID="LIL1600ML-065" Machine_IP="192.168.14.77" Machine_Ftp_ID="ftplogger" Machine_Ftp_Pwd="ftplogger" Machine_Ftp_Path="" TacTime="60" />
 </Machines>
 
 

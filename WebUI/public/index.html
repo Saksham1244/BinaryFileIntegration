@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toshiba Machine Monitoring Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js and Date Adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar or Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-microchip logo-icon"></i>
+                <div class="logo-text">
+                    <h1>TOSHIBA</h1>
+                    <span>Machine Monitoring System</span>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="nav-tabs-container">
+                <button class="nav-btn active" id="navDashboardBtn">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </button>
+                <button class="nav-btn" id="navParametersBtn">
+                    <i class="fa-solid fa-chart-line"></i> Parameter Trends
+                </button>
+            </div>
+            
+            <div class="header-status">
+                <div class="status-indicator db-status" id="dbStatus">
+                    <span class="pulse-dot"></span>
+                    <span class="status-label">Database Connection: Checking...</span>
+                </div>
+                <div class="status-indicator refresh-timer" id="refreshTimer">
+                    <i class="fa-solid fa-arrows-rotate rotate-icon"></i>
+                    <span class="timer-label">Refreshing in <b id="countdown">10</b>s</span>
+                </div>
+                <button class="btn-theme" id="btnThemeToggle" title="Toggle Theme">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+                <button class="btn-refresh" id="btnRefresh" title="Refresh Now">
+                    <i class="fa-solid fa-sync"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="app-content">
+            <!-- View 1: Real-Time Dashboard -->
+            <div id="dashboardView" class="view-panel active">
+                <!-- Summary Stats Widgets -->
+                <section class="stats-section">
+                    <div class="stat-card glass-panel" id="statTotal">
+                        <div class="stat-icon-wrapper blue-glow">
+                            <i class="fa-solid fa-industry"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Machines</h3>
+                            <p class="stat-value" id="valTotal">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" id="statOnline">
+                        <div class="stat-icon-wrapper green-glow">
+                            <i class="fa-solid fa-network-wired"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Online (Ping OK)</h3>
+                            <p class="stat-value text-success" id="valOnline">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" id="statOffline">
+                        <div class="stat-icon-wrapper red-glow">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Offline</h3>
+                            <p class="stat-value text-error" id="valOffline">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel" id="statActive">
+                        <div class="stat-icon-wrapper yellow-glow">
+                            <i class="fa-solid fa-database"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Data Pushed (24h)</h3>
+                            <p class="stat-value text-warning" id="valActive">0</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Search and Filter Controls -->
+                <section class="filter-section glass-panel">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="txtSearch" placeholder="Search machine by ID or name...">
+                    </div>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-filter="all">All Machines</button>
+                        <button class="filter-tab" data-filter="online"><span class="badge badge-success"></span> Online</button>
+                        <button class="filter-tab" data-filter="offline"><span class="badge badge-error"></span> Offline</button>
+                        <button class="filter-tab" data-filter="stale"><span class="badge badge-warning"></span> Stale Data (>1h)</button>
+                    </div>
+                </section>
+
+                <!-- Grid View of Machine Cards -->
+                <section class="machines-grid" id="machinesGrid">
+                    <!-- Shimmer loading placeholders -->
+                    <div class="shimmer-card"></div>
+                    <div class="shimmer-card"></div>
+                    <div class="shimmer-card"></div>
+                </section>
+            </div>
+
+            <!-- View 2: Parameter Trends & Analytics -->
+            <div id="parametersView" class="view-panel">
+                <!-- Filters panel (Date, Shift, Start & End Time, Machine Slider) -->
+                <section class="param-filters-section glass-panel">
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label for="paramDate">Date</label>
+                            <input type="date" id="paramDate">
+                        </div>
+                        <div class="filter-group">
+                            <label for="paramShift">Shift</label>
+                            <select id="paramShift">
+                                <option value="all">All Shifts</option>
+                                <option value="A">Shift A</option>
+                                <option value="B">Shift B</option>
+                                <option value="C">Shift C</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="paramStartTime">Start Time</label>
+                            <input type="time" id="paramStartTime">
+                        </div>
+                        <div class="filter-group">
+                            <label for="paramEndTime">End Time</label>
+                            <input type="time" id="paramEndTime">
+                        </div>
+                    </div>
+
+                    <!-- Machine Horizontal Slider -->
+                    <div class="machine-selector-wrapper">
+                        <span class="slider-title">Select Machine</span>
+                        <div class="machine-slider-container">
+                            <button class="slider-nav-btn prev" id="sliderPrevBtn">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <div class="machine-cards-slider" id="machineCardsSlider">
+                                <!-- Dynamic Machine Cards Loaded via JS -->
+                            </div>
+                            <button class="slider-nav-btn next" id="sliderNextBtn">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Parameter Categories Selection Panel -->
+                <section class="parameters-selection-section glass-panel">
+                    <div class="section-header-row">
+                        <h3 class="section-title"><i class="fa-solid fa-list-check"></i> Parameter Selection</h3>
+                        <div class="selection-actions">
+                            <button class="btn-secondary btn-sm" id="btnSelectAllParams">Select All</button>
+                            <button class="btn-secondary btn-sm" id="btnClearAllParams">Clear All</button>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-categories-grid">
+                        <!-- Group 1: Pressure -->
+                        <div class="param-category-card">
+                            <div class="category-header">
+                                <h4 class="category-title"><i class="fa-solid fa-gauge-simple-high"></i> Pressure</h4>
+                                <div class="category-actions">
+                                    <span class="select-group-link" data-cat="Pressure" data-action="all">All</span> | 
+                                    <span class="select-group-link" data-cat="Pressure" data-action="none">None</span>
+                                </div>
+                            </div>
+                            <div class="switches-grid" id="gridPressure"></div>
+                        </div>
+
+                        <!-- Group 2: Speed -->
+                        <div class="param-category-card">
+                            <div class="category-header">
+                                <h4 class="category-title"><i class="fa-solid fa-gauge-high"></i> Speed</h4>
+                                <div class="category-actions">
+                                    <span class="select-group-link" data-cat="Speed" data-action="all">All</span> | 
+                                    <span class="select-group-link" data-cat="Speed" data-action="none">None</span>
+                                </div>
+                            </div>
+                            <div class="switches-grid" id="gridSpeed"></div>
+                        </div>
+
+                        <!-- Group 3: Temperature -->
+                        <div class="param-category-card">
+                            <div class="category-header">
+                                <h4 class="category-title"><i class="fa-solid fa-temperature-three-quarters"></i> Temperature</h4>
+                                <div class="category-actions">
+                                    <span class="select-group-link" data-cat="Temperature" data-action="all">All</span> | 
+                                    <span class="select-group-link" data-cat="Temperature" data-action="none">None</span>
+                                </div>
+                            </div>
+                            <div class="switches-grid" id="gridTemperature"></div>
+                        </div>
+
+                        <!-- Group 4: Timing -->
+                        <div class="param-category-card">
+                            <div class="category-header">
+                                <h4 class="category-title"><i class="fa-solid fa-stopwatch"></i> Timing</h4>
+                                <div class="category-actions">
+                                    <span class="select-group-link" data-cat="Timing" data-action="all">All</span> | 
+                                    <span class="select-group-link" data-cat="Timing" data-action="none">None</span>
+                                </div>
+                            </div>
+                            <div class="switches-grid" id="gridTiming"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Load Trends Action Bar -->
+                <div class="trends-action-bar">
+                    <button class="btn-primary" id="btnLoadTrends">
+                        <i class="fa-solid fa-rotate"></i> Load Parameter Trends
+                    </button>
+                    <button class="btn-secondary" id="btnExportCSV" disabled>
+                        <i class="fa-solid fa-file-csv"></i> Export to CSV
+                    </button>
+                </div>
+
+                <!-- Visualization Trend Chart -->
+                <div class="trend-chart-wrapper glass-panel" id="chartCard" style="display: none;">
+                    <h4 class="chart-card-title"><i class="fa-solid fa-chart-line"></i> Parameter Trends Visualization</h4>
+                    <div style="position: relative; height: 450px; width: 100%;">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Visualization Data Table -->
+                <div class="trend-table-wrapper glass-panel" id="tableCard" style="display: none;">
+                    <div class="table-header-row">
+                        <h4 class="table-card-title"><i class="fa-solid fa-table"></i> Parameter Raw Data</h4>
+                        <div class="pagination-controls" id="tablePagination"></div>
+                    </div>
+                    <div class="table-scroll-container">
+                        <table class="trend-data-table" id="trendDataTable">
+                            <thead><tr id="trendTableHeader"></tr></thead>
+                            <tbody id="trendTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <p>&copy; 2026 PPMS Toshiba Data Integration. All rights reserved. Last updated: <span id="lastUpdated">-</span></p>
+        </footer>
+    </div>
+
+    <!-- Script file -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-﻿using NLog;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -120,7 +120,7 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         DateTime? latestDbTime = null;
                         try
                         {
-                            string maxQuery = "SELECT MAX(Set_Date_Time) FROM [dbo].[Alarm_Data] WHERE Machine_Id = @Machine_Id";
+                            string maxQuery = "SELECT MAX(Set_Date_Time) FROM [dbo].[Machine_Alarm_Data] WHERE Machine_Id = @Machine_Id";
                             // Note: Assuming Set_Date_Time in DB is DateTime or convertible. 
                             // If it's string in DB, this might need casting, but Dapper usually handles it if column is DateTime.
                             // If column is VARCHAR, we might need CAST/CONVERT in SQL. 
@@ -138,11 +138,14 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                         int totalInFile = ALM.Count;
 
+                        // Keep a full snapshot BEFORE dedup filter, to detect resolved alarms
+                        var fullFileSnapshot = new List<Machine_Alarm_Data>(ALM);
+
                         // 4. Filter duplicates
                         if (latestDbTime.HasValue)
                         {
-                            // Remove alarms that are older or equal to the latest one in DB
-                            ALM.RemoveAll(x => DateTime.Parse(x.Set_Date_Time) <= latestDbTime.Value);
+                            // Remove alarms strictly OLDER than the latest one in DB (keep equal-timestamp ones to avoid missing alarms)
+                            ALM.RemoveAll(x => DateTime.Parse(x.Set_Date_Time) < latestDbTime.Value);
                         }
 
                         int newRecords = ALM.Count;
@@ -150,26 +153,30 @@ namespace ToshibaBinary2DbClassLibrary.Model
 
                         if (newRecords > 0)
                         {
-                            string InsertMachine_Alarm = @"INSERT INTO [dbo].[Alarm_Data]
+                            string InsertMachine_Alarm = @"INSERT INTO [dbo].[Machine_Alarm_Data]
                                                         (
-		                                                       [Alarm_Number]
+	                                                       [Alarm_Number]
                                                                ,[Set_Date_Time]
                                                                ,[Reset_Date_Time]
                                                                ,[Machine_Id]
                                                                ,[Alarm_Status]
                                                                ,[ProdDate]
                                                                ,[ShiftName]
-		                                                       )
-                                                         VALUES
-                                                               (
-			                                                    @Alarm_Number
+	                                                       )
+                                                        SELECT
+	                                                           @Alarm_Number
                                                                ,@Set_Date_Time
                                                                ,@Reset_Date_Time
                                                                ,@Machine_Id
                                                                ,@Alarm_Status
                                                                ,@ProdDate
                                                                ,@ShiftName
-		                                                  )";
+                                                        WHERE NOT EXISTS (
+                                                            SELECT 1 FROM [dbo].[Machine_Alarm_Data]
+                                                            WHERE Machine_Id = @Machine_Id
+                                                              AND Set_Date_Time = @Set_Date_Time
+                                                              AND Alarm_Number = @Alarm_Number
+                                                        )";
 
                             logger.Info($"[Alarm_Data] Inserting {newRecords} NEW alarms for Machine '{Machine_ID}' (Filtered {totalInFile - newRecords} duplicates)");
                             rowsAffected = db.Execute(InsertMachine_Alarm, ALM);
@@ -191,6 +198,25 @@ namespace ToshibaBinary2DbClassLibrary.Model
                         }
 
                         Console.WriteLine($"Alarm processing for {Machine_ID}: {newRecords} inserted out of {totalInFile}.");
+
+                        // 5. Resolve previously-Active alarms: update Reset_Date_Time for alarms
+                        //    that were stored as 'Active' but now have a real reset time in this file.
+                        //    Use fullFileSnapshot (pre-dedup) so even older cleared alarms are resolved.
+                        var resolvedAlarms = fullFileSnapshot.Where(x => x.Reset_Date_Time != "Active").ToList();
+                        if (resolvedAlarms.Count > 0)
+                        {
+                            string updateResetSql = @"UPDATE [dbo].[Machine_Alarm_Data]
+                                                      SET Reset_Date_Time = @Reset_Date_Time
+                                                      WHERE Machine_Id = @Machine_Id
+                                                        AND Alarm_Number = @Alarm_Number
+                                                        AND Set_Date_Time = @Set_Date_Time
+                                                        AND Reset_Date_Time = 'Active'";
+                            int resolvedCount = db.Execute(updateResetSql, resolvedAlarms);
+                            if (resolvedCount > 0)
+                                logger.Info($"[Alarm_Data] Resolved {resolvedCount} previously-Active alarms for Machine '{Machine_ID}'");
+                        }
+
+
                     }
                 }
                 //}
@@ -225,11 +251,16 @@ namespace ToshibaBinary2DbClassLibrary.Model
                             continue;
 
 
-                        DateTime Set_Date_Time = DateTimeOffset.FromUnixTimeSeconds(reader.ReadUInt32()).LocalDateTime;
-                        DateTime Reset_Date_Time = DateTimeOffset.FromUnixTimeSeconds(reader.ReadUInt32()).LocalDateTime;
+                        // Toshiba machines store time as local JST (UTC+9) Unix seconds, not UTC.
+                        // Subtract the JST offset (9 hours = 32400 seconds) to get true UTC,
+                        // then convert to local time (IST = UTC+5:30).
+                        const int jstOffsetSeconds = 9 * 3600; // 32400
+
+                        DateTime Set_Date_Time = DateTimeOffset.FromUnixTimeSeconds(reader.ReadUInt32() - jstOffsetSeconds).LocalDateTime;
+                        DateTime Reset_Date_Time = DateTimeOffset.FromUnixTimeSeconds(reader.ReadUInt32() - jstOffsetSeconds).LocalDateTime;
 
                         string s_Set_Date_Time = Set_Date_Time.ToString("yyyy-MM-dd HH:mm:ss");
-                        string s_Reset_Date_Time= Reset_Date_Time.ToString("yyyy-MM-dd HH:mm:ss");
+                        string s_Reset_Date_Time = Reset_Date_Time.ToString("yyyy-MM-dd HH:mm:ss");
 
                         if (Reset_Date_Time > DateTime.Now)
                             s_Reset_Date_Time = "Active";
