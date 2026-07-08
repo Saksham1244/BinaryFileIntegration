@@ -313,7 +313,12 @@ const sliderPrevBtn = document.getElementById('sliderPrevBtn');
 const sliderNextBtn = document.getElementById('sliderNextBtn');
 const btnLoadTrends = document.getElementById('btnLoadTrends');
 const btnExportCSV = document.getElementById('btnExportCSV');
-const chartCard = document.getElementById('chartCard');
+const chartContainers = {
+    Pressure: document.getElementById('chartPressure'),
+    Speed: document.getElementById('chartSpeed'),
+    Temperature: document.getElementById('chartTemperature'),
+    Timing: document.getElementById('chartTiming')
+};
 const tableCard = document.getElementById('tableCard');
 const trendTableHeader = document.getElementById('trendTableHeader');
 const trendTableBody = document.getElementById('trendTableBody');
@@ -321,7 +326,12 @@ const tablePagination = document.getElementById('tablePagination');
 
 // Selected states
 let selectedMachineId = '';
-let activeTrendsChart = null;
+let activeCharts = {
+    Pressure: null,
+    Speed: null,
+    Temperature: null,
+    Timing: null
+};
 let trendData = [];
 let currentPage = 1;
 const rowsPerPage = 10;
@@ -463,13 +473,15 @@ function renderParameterSwitches() {
                     loadTrendsData();
                 } else {
                     // Hide visualization panels if no parameters are selected
-                    chartCard.style.display = 'none';
+                    Object.values(chartContainers).forEach(c => c.style.display = 'none');
                     tableCard.style.display = 'none';
                     btnExportCSV.disabled = true;
-                    if (activeTrendsChart) {
-                        activeTrendsChart.destroy();
-                        activeTrendsChart = null;
-                    }
+                    Object.keys(activeCharts).forEach(cat => {
+                        if (activeCharts[cat]) {
+                            activeCharts[cat].destroy();
+                            activeCharts[cat] = null;
+                        }
+                    });
                 }
             });
             
@@ -588,7 +600,13 @@ async function loadTrendsData() {
         trendData = mergeTimeSeries(data.moulding, data.process);
         
         if (trendData.length === 0) {
-            chartCard.style.display = 'none';
+            Object.values(chartContainers).forEach(c => c.style.display = 'none');
+            Object.keys(activeCharts).forEach(cat => {
+                if (activeCharts[cat]) {
+                    activeCharts[cat].destroy();
+                    activeCharts[cat] = null;
+                }
+            });
             tableCard.style.display = 'none';
             btnExportCSV.disabled = true;
             alert('No parameter records found matching the selected filters.');
@@ -596,12 +614,11 @@ async function loadTrendsData() {
         }
         
         // Display cards
-        chartCard.style.display = 'block';
         tableCard.style.display = 'block';
         btnExportCSV.disabled = false;
         
         currentPage = 1;
-        renderTrendChart(fields);
+        renderTrendCharts(fields);
         renderTrendTable(fields);
         
     } catch (err) {
@@ -613,102 +630,127 @@ async function loadTrendsData() {
     }
 }
 
-// Render line chart
-function renderTrendChart(selectedFields) {
-    if (activeTrendsChart) {
-        activeTrendsChart.destroy();
+function getFieldCategory(fieldId) {
+    for (const [cat, params] of Object.entries(mouldingParams)) {
+        if (params.some(p => p.id === fieldId)) return cat;
     }
-    
-    const ctx = document.getElementById('trendsChart').getContext('2d');
-    
-    // Parse time strings
-    const labels = trendData.map(d => {
-        const dt = new Date(d.TimeStamp);
-        return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    });
-    
-    // Color generator matching our premium cyan/blue palette
-    const colors = [
-        '#06b6d4', // cyan
-        '#3b82f6', // blue
-        '#10b981', // green
-        '#f59e0b', // amber
-        '#ec4899', // pink
-        '#8b5cf6', // purple
-        '#ef4444'  // red
-    ];
-    
-    const datasets = selectedFields.map((field, idx) => {
-        // Find label
-        let label = field;
-        const allLists = [...Object.values(mouldingParams).flat(), ...Object.values(processParams).flat()];
-        const matched = allLists.find(p => p.id === field);
-        if (matched) label = matched.label;
-        
-        const dataValues = trendData.map(d => d[field] !== undefined ? d[field] : null);
-        
-        const color = colors[idx % colors.length];
-        
-        return {
-            label: label,
-            data: dataValues,
-            borderColor: color,
-            backgroundColor: color + '1a', // 10% opacity
-            borderWidth: 2,
-            pointRadius: trendData.length > 50 ? 0 : 3,
-            pointHoverRadius: 5,
-            tension: 0.15,
-            spanGaps: true
-        };
-    });
-    
-    const isLight = document.body.classList.contains('light-theme');
-    const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.04)';
-    const textColor = isLight ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)';
-    const tickColor = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.5)';
-    const tooltipBg = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)';
-    const tooltipText = isLight ? '#0f172a' : '#fff';
-    const tooltipBorder = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+    for (const [cat, params] of Object.entries(processParams)) {
+        if (params.some(p => p.id === fieldId)) return cat;
+    }
+    return null;
+}
 
-    activeTrendsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        color: textColor,
-                        font: { family: 'Outfit', size: 11, weight: '500' },
-                        boxWidth: 12
+// Render separate line charts per category
+function renderTrendCharts(selectedFields) {
+    const categories = ['Pressure', 'Speed', 'Temperature', 'Timing'];
+    
+    categories.forEach(cat => {
+        const catFields = selectedFields.filter(f => getFieldCategory(f) === cat);
+        const container = chartContainers[cat];
+        
+        if (catFields.length === 0) {
+            container.style.display = 'none';
+            if (activeCharts[cat]) {
+                activeCharts[cat].destroy();
+                activeCharts[cat] = null;
+            }
+            return;
+        }
+        
+        container.style.display = 'block';
+        const canvasId = `canvas${cat}`;
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        
+        if (activeCharts[cat]) {
+            activeCharts[cat].destroy();
+        }
+        
+        const labels = trendData.map(d => {
+            const dt = new Date(d.TimeStamp);
+            return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        });
+        
+        const colors = [
+            '#3b82f6', // blue
+            '#06b6d4', // cyan
+            '#10b981', // green
+            '#f59e0b', // amber
+            '#ec4899', // pink
+            '#8b5cf6', // purple
+            '#ef4444'  // red
+        ];
+        
+        const datasets = catFields.map((field, idx) => {
+            let label = field;
+            const allLists = [...Object.values(mouldingParams).flat(), ...Object.values(processParams).flat()];
+            const matched = allLists.find(p => p.id === field);
+            if (matched) label = matched.label;
+            
+            const dataValues = trendData.map(d => d[field] !== undefined ? d[field] : null);
+            const color = colors[idx % colors.length];
+            
+            return {
+                label: label,
+                data: dataValues,
+                borderColor: color,
+                backgroundColor: color + '1a',
+                borderWidth: 2,
+                pointRadius: trendData.length > 50 ? 0 : 3,
+                pointHoverRadius: 5,
+                tension: 0.15,
+                spanGaps: true
+            };
+        });
+        
+        const isLight = document.body.classList.contains('light-theme');
+        const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+        const textColor = isLight ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)';
+        const tickColor = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+        const tooltipBg = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)';
+        const tooltipText = isLight ? '#0f172a' : '#fff';
+        const tooltipBorder = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+        
+        activeCharts[cat] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: textColor,
+                            font: { family: 'Outfit', size: 11, weight: '500' },
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: tooltipBg,
+                        titleColor: tooltipText,
+                        bodyColor: isLight ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255,255,255,0.8)',
+                        borderColor: tooltipBorder,
+                        borderWidth: 1,
+                        titleFont: { family: 'Outfit', size: 12, weight: 'bold' },
+                        bodyFont: { family: 'Outfit', size: 11 }
                     }
                 },
-                tooltip: {
-                    backgroundColor: tooltipBg,
-                    titleColor: tooltipText,
-                    bodyColor: isLight ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255,255,255,0.8)',
-                    borderColor: tooltipBorder,
-                    borderWidth: 1,
-                    titleFont: { family: 'Outfit', size: 12, weight: 'bold' },
-                    bodyFont: { family: 'Outfit', size: 11 }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { color: gridColor },
-                    ticks: { color: tickColor, font: { family: 'Outfit', size: 10 } }
-                },
-                y: {
-                    grid: { color: gridColor },
-                    ticks: { color: tickColor, font: { family: 'Outfit', size: 10 } }
+                scales: {
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: tickColor, font: { family: 'Outfit', size: 10 } }
+                    },
+                    y: {
+                        grid: { color: gridColor },
+                        ticks: { color: tickColor, font: { family: 'Outfit', size: 10 } }
+                    }
                 }
             }
-        }
+        });
     });
 }
 
@@ -903,13 +945,15 @@ function setupParametersListeners() {
             if (checkedCount > 0) {
                 loadTrendsData();
             } else {
-                chartCard.style.display = 'none';
+                Object.values(chartContainers).forEach(c => c.style.display = 'none');
                 tableCard.style.display = 'none';
                 btnExportCSV.disabled = true;
-                if (activeTrendsChart) {
-                    activeTrendsChart.destroy();
-                    activeTrendsChart = null;
-                }
+                Object.keys(activeCharts).forEach(catName => {
+                    if (activeCharts[catName]) {
+                        activeCharts[catName].destroy();
+                        activeCharts[catName] = null;
+                    }
+                });
             }
         });
     });
@@ -928,13 +972,15 @@ function setupParametersListeners() {
             cb.checked = false;
             cb.closest('.switch-container').classList.remove('checked');
         });
-        chartCard.style.display = 'none';
+        Object.values(chartContainers).forEach(c => c.style.display = 'none');
         tableCard.style.display = 'none';
         btnExportCSV.disabled = true;
-        if (activeTrendsChart) {
-            activeTrendsChart.destroy();
-            activeTrendsChart = null;
-        }
+        Object.keys(activeCharts).forEach(cat => {
+            if (activeCharts[cat]) {
+                activeCharts[cat].destroy();
+                activeCharts[cat] = null;
+            }
+        });
     });
     
     // Auto-update on filter input changes
@@ -1032,27 +1078,29 @@ btnThemeToggle.addEventListener('click', () => {
         themeIcon.className = 'fa-solid fa-sun';
         localStorage.setItem('theme', 'light');
     }
-    
     // Update chart colors in real-time
-    if (activeTrendsChart) {
-        const isLight = document.body.classList.contains('light-theme');
-        const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.04)';
-        const textColor = isLight ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)';
-        const tickColor = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.5)';
-        const tooltipBg = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)';
-        const tooltipText = isLight ? '#0f172a' : '#fff';
-        const tooltipBorder = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+    const isLight = document.body.classList.contains('light-theme');
+    const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.04)';
+    const textColor = isLight ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.7)';
+    const tickColor = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+    const tooltipBg = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)';
+    const tooltipText = isLight ? '#0f172a' : '#fff';
+    const tooltipBorder = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
 
-        activeTrendsChart.options.scales.x.grid.color = gridColor;
-        activeTrendsChart.options.scales.x.ticks.color = tickColor;
-        activeTrendsChart.options.scales.y.grid.color = gridColor;
-        activeTrendsChart.options.scales.y.ticks.color = tickColor;
-        activeTrendsChart.options.plugins.legend.labels.color = textColor;
-        activeTrendsChart.options.plugins.tooltip.backgroundColor = tooltipBg;
-        activeTrendsChart.options.plugins.tooltip.titleColor = tooltipText;
-        activeTrendsChart.options.plugins.tooltip.bodyColor = isLight ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255,255,255,0.8)';
-        activeTrendsChart.options.plugins.tooltip.borderColor = tooltipBorder;
-        activeTrendsChart.update();
-    }
+    Object.keys(activeCharts).forEach(cat => {
+        const chart = activeCharts[cat];
+        if (chart) {
+            chart.options.scales.x.grid.color = gridColor;
+            chart.options.scales.x.ticks.color = tickColor;
+            chart.options.scales.y.grid.color = gridColor;
+            chart.options.scales.y.ticks.color = tickColor;
+            chart.options.plugins.legend.labels.color = textColor;
+            chart.options.plugins.tooltip.backgroundColor = tooltipBg;
+            chart.options.plugins.tooltip.titleColor = tooltipText;
+            chart.options.plugins.tooltip.bodyColor = isLight ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255,255,255,0.8)';
+            chart.options.plugins.tooltip.borderColor = tooltipBorder;
+            chart.update();
+        }
+    });
 });
 

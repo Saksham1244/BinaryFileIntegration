@@ -187,6 +187,9 @@
                                 </div>
                             </div>
                             <div class="switches-grid" id="gridPressure"></div>
+                            <div class="section-chart-wrapper" id="chartPressure" style="display: none;">
+                                <canvas id="canvasPressure"></canvas>
+                            </div>
                         </div>
 
                         <!-- Group 2: Speed -->
@@ -199,6 +202,9 @@
                                 </div>
                             </div>
                             <div class="switches-grid" id="gridSpeed"></div>
+                            <div class="section-chart-wrapper" id="chartSpeed" style="display: none;">
+                                <canvas id="canvasSpeed"></canvas>
+                            </div>
                         </div>
 
                         <!-- Group 3: Temperature -->
@@ -211,6 +217,9 @@
                                 </div>
                             </div>
                             <div class="switches-grid" id="gridTemperature"></div>
+                            <div class="section-chart-wrapper" id="chartTemperature" style="display: none;">
+                                <canvas id="canvasTemperature"></canvas>
+                            </div>
                         </div>
 
                         <!-- Group 4: Timing -->
@@ -223,6 +232,9 @@
                                 </div>
                             </div>
                             <div class="switches-grid" id="gridTiming"></div>
+                            <div class="section-chart-wrapper" id="chartTiming" style="display: none;">
+                                <canvas id="canvasTiming"></canvas>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -235,14 +247,6 @@
                     <button class="btn-secondary" id="btnExportCSV" disabled>
                         <i class="fa-solid fa-file-csv"></i> Export to CSV
                     </button>
-                </div>
-
-                <!-- Visualization Trend Chart -->
-                <div class="trend-chart-wrapper glass-panel" id="chartCard" style="display: none;">
-                    <h4 class="chart-card-title"><i class="fa-solid fa-chart-line"></i> Parameter Trends Visualization</h4>
-                    <div style="position: relative; height: 450px; width: 100%;">
-                        <canvas id="trendsChart"></canvas>
-                    </div>
                 </div>
 
                 <!-- Visualization Data Table -->

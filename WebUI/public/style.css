@@ -1235,3 +1235,15 @@ body {
     border-color: rgba(127, 127, 127, 0.25);
 }
 
+/* Category-specific Chart Layouts */
+.section-chart-wrapper {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(127, 127, 127, 0.03);
+    border: 1px solid rgba(127, 127, 127, 0.15);
+    border-radius: 8px;
+    height: 320px;
+    position: relative;
+    width: 100%;
+}
+
